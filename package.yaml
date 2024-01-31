@@ -35,6 +35,17 @@ ghc-options:
 
 library:
   source-dirs: src
+  ghc-options:
+  - -XOverloadedStrings
+  dependencies:
+  - array
+  - base
+  - bytestring
+  - containers
+  - mtl
+  build-tool-depends:
+  - alex
+  - happy
 
 executables:
   TAPL-exe:
