@@ -38,14 +38,7 @@ library:
   ghc-options:
   - -XOverloadedStrings
   dependencies:
-  - array
-  - base
-  - bytestring
-  - containers
   - mtl
-  build-tool-depends:
-  - alex
-  - happy
 
 executables:
   TAPL-exe:
@@ -60,7 +53,7 @@ executables:
 
 tests:
   TAPL-test:
-    main:                Spec.hs
+    main:                Main.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -68,3 +61,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - TAPL
+    - tasty
+    - tasty-hunit
