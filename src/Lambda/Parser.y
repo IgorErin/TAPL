@@ -17,6 +17,13 @@ import qualified Lambda.Expr as LE
 
    '->'     { L.TArrow }
 
+   "true"   { L.TTrue }
+   "false"  { L.TFalse }
+
+   "if"     { L.TIf }
+   "then"   { L.TThen }
+   "else"   { L.TElse }
+
    ident    { L.TIdent $$ }
 %%
 
@@ -26,6 +33,9 @@ Program : Expr                      { $1 }
 Expr :: { LE.Expr }
 Expr
     : "fun" ident identList '->' Expr         { LE.lams $2 $3 $5 }
+    | "if" Expr "then" Expr "else" Expr       { LE.if_ $2 $4 $6}
+    | "true"                                  { LE.true }
+    | "false"                                 { LE.false }
     | Expr Expr                               { LE.app $1 $2 }
     | ident                                   { LE.var $1 }
     | '(' Expr ')'                            { $2 }

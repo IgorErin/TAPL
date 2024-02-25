@@ -1,6 +1,7 @@
 module Lambda.Expr  (
     Expr(..), Symb,
     var, app, lam, lams,
+    if_, false, true
 ) where
 
 type Symb = String
@@ -9,9 +10,21 @@ infixl 4 :@
 
 data Expr =
     Var Symb
+    | Tru
+    | Fls
+    | If Expr Expr Expr
     | Expr :@ Expr
     | Lam Symb Expr
     deriving (Eq, Read, Show)
+
+true :: Expr
+true = Tru
+
+false :: Expr
+false = Fls
+
+if_ :: Expr -> Expr -> Expr -> Expr
+if_ = If
 
 var :: Symb -> Expr
 var = Var

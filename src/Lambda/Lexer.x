@@ -19,6 +19,12 @@ tokens :-
   "->"                  { \_ -> TArrow   }
   "("                   { \_ -> TLParent }
   ")"                   { \_ -> TRParent }
+  "true"                { \_ -> TTrue }
+  "false"               { \_ -> TFalse }
+
+  "if"                  { \_ -> TIf }
+  "then"                { \_ -> TThen }
+  "else"                { \_ -> TElse }
 
   @ident                { TIdent }
 
@@ -28,6 +34,13 @@ data Token
   =
   TLParent
   | TRParent
+
+  | TIf
+  | TThen
+  | TElse
+
+  | TTrue
+  | TFalse
 
   | TLambda
   | TArrow

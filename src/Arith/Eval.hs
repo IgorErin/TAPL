@@ -34,7 +34,7 @@ step term = fail $ show term
 iterateWhileJust :: a -> (a -> Maybe a) -> [a]
 iterateWhileJust start next = loop $ Just start
     where
-        loop (Just x) = x : (loop $ next x)
+        loop (Just x) = x : loop (next x)
         loop Nothing  = []
 
 steps :: Term  -> [Term]

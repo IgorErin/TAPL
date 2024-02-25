@@ -7,6 +7,9 @@ infixl 4 :@:
 
 data Term =
     Idx Ident
+    | Tru
+    | Fls
+    | If Term Term Term
     | Term :@: Term
     | Lmb Info Term
     deriving (Eq, Read, Show)
