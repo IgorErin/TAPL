@@ -33,6 +33,7 @@ library
       Lambda.Lexer
       Lambda.Parser
       Lambda.Term
+      Lambda.Types
   other-modules:
       Paths_TAPL
   autogen-modules:

@@ -1,1 +1,1 @@
-(fun z -> (fun x -> z) (fun y -> z))
+(fun (z: Bool) -> (fun (x: Bool) -> z) (fun (y: Bool) -> z))

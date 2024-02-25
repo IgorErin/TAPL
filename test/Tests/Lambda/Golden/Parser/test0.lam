@@ -1,1 +1,1 @@
-Lam "ident" (Var "ident")
+Lam "ident" Bool (Var "ident")

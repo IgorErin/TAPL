@@ -5,10 +5,10 @@ import Data.List (elemIndex)
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
-import qualified Lambda.Term as T (Term(..), Type(..))
-import qualified Lambda.Expr as E (Expr(..), Symb)
+import qualified Lambda.Term as T (Term(..))
+import qualified Lambda.Expr as E (Expr(..), Ident)
 
-type Context = [E.Symb]
+type Context = [E.Ident]
 
 e2t :: E.Expr -> (Context, T.Term)
 e2t term = (freeVars, helper freeVars term)
@@ -23,9 +23,8 @@ e2t term = (freeVars, helper freeVars term)
         let left' = helper ctx left
             right' = helper ctx right
         in left' :@: right'
-    helper ctx (E.Lam name body) =
-        -- TODO add types to parser
-        T.Lmb name T.Bool $ helper (name : ctx) body
+    helper ctx (E.Lam name ty body) =
+        T.Lmb name ty $ helper (name : ctx) body
     helper ctx (E.If guard etrue efalse) =
         let guard' = helper ctx guard
             etrue' = helper ctx etrue
@@ -34,7 +33,7 @@ e2t term = (freeVars, helper freeVars term)
     helper _ E.Tru = T.Tru
     helper _ E.Fls = T.Fls
 
-addVar :: E.Symb -> Context -> Context
+addVar :: E.Ident -> Context -> Context
 addVar symb ctx =
     if symb `elem` ctx
     then ctx
@@ -51,7 +50,7 @@ fetchFree = helper [] []
     helper bound free (left :@ right) =
         let free' = helper bound free left
         in helper bound free' right
-    helper bound free (E.Lam name body) =
+    helper bound free (E.Lam name _ body) =
         let bound' = name : bound
         in helper bound' free body
     helper bound free (E.If guard etrue efalse) =
@@ -62,12 +61,12 @@ fetchFree = helper [] []
     helper _ free E.Tru = free
     helper _ free E.Fls = free
 
-newName :: E.Symb -> Context -> E.Symb
+newName :: E.Ident -> Context -> E.Ident
 newName var ctx
     | var `elem` ctx = helper 0 var
     | otherwise      = var
     where
-    helper :: Int -> E.Symb -> E.Symb
+    helper :: Int -> E.Ident -> E.Ident
     helper count name
         | name' `elem` ctx = helper (succ count) name
         | otherwise        = name'
@@ -86,11 +85,11 @@ t2e ctx = helper 0 []
             left' = helper' left
             right' = helper' right
         in left' :@ right'
-    helper depth bound (T.Lmb name _ body) =
+    helper depth bound (T.Lmb name ty body) =
         let name' = newName name (bound ++ ctx)
             bound' = name' : bound
             depth' = succ depth
-        in E.Lam name' $ helper depth' bound' body
+        in E.Lam name' ty $ helper depth' bound' body
     helper depth bound (T.If guard ttrue tfalse) =
         let helper' = helper depth bound
 

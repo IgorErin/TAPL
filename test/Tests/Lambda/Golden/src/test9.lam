@@ -1,1 +1,1 @@
-fun s z -> s (s z)
+fun (s: Bool -> Bool) (z: Bool) -> s (s z)

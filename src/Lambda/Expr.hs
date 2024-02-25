@@ -1,20 +1,24 @@
 module Lambda.Expr  (
-    Expr(..), Symb,
+    Expr(..), Ident,
     var, app, lam, lams,
     if_, false, true
 ) where
 
-type Symb = String
+import Data.List.NonEmpty
+
+import Lambda.Types (Type)
+
+type Ident = String
 
 infixl 4 :@
 
 data Expr =
-    Var Symb
+    Var Ident
     | Tru
     | Fls
     | If Expr Expr Expr
     | Expr :@ Expr
-    | Lam Symb Expr
+    | Lam Ident Type Expr
     deriving (Eq, Read, Show)
 
 true :: Expr
@@ -26,17 +30,17 @@ false = Fls
 if_ :: Expr -> Expr -> Expr -> Expr
 if_ = If
 
-var :: Symb -> Expr
+var :: Ident -> Expr
 var = Var
 
 app :: Expr -> Expr -> Expr
 app = (:@)
 
-lam :: Symb -> Expr -> Expr
+lam :: Ident -> Type -> Expr -> Expr
 lam = Lam
 
-lams :: Symb -> [Symb] -> Expr -> Expr
-lams hd tl expr = lam hd $ helper tl
+lams :: NonEmpty (Ident, Type) -> Expr -> Expr
+lams ((ident, ty) :| tl) expr = lam ident ty $ helper tl
     where
     helper [] = expr
-    helper (h : t) = lam h $ helper t
+    helper ((id', ty') : tl') = lam id' ty' $ helper tl'

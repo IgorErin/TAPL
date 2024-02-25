@@ -1,1 +1,1 @@
-Lam "x" (If (Var "x") Tru Fls) :@ If Fls Tru Fls
+Lam "x" Bool (If (Var "x") Tru Fls) :@ If Fls Tru Fls

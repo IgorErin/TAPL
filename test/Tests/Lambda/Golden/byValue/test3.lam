@@ -1,1 +1,1 @@
-Lmb "y" Bool (Lmb "z" Bool (Idx 0))
+Lmb "y" ((Bool :-> Bool) :-> Bool) (Lmb "z" ((Bool :-> Bool) :-> Bool) (Idx 0))

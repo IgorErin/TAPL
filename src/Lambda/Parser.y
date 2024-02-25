@@ -3,6 +3,9 @@ module Lambda.Parser where
 
 import qualified Lambda.Lexer as L
 import qualified Lambda.Expr as LE
+import qualified Lambda.Types as TT
+
+import Data.List.NonEmpty hiding (reverse)
 }
 
 %name run
@@ -15,7 +18,7 @@ import qualified Lambda.Expr as LE
    '('      { L.TLParent }
    ')'      { L.TRParent }
 
-   '->'     { L.TArrow }
+   "->"     { L.TArrow }
 
    "true"   { L.TTrue }
    "false"  { L.TFalse }
@@ -23,6 +26,8 @@ import qualified Lambda.Expr as LE
    "if"     { L.TIf }
    "then"   { L.TThen }
    "else"   { L.TElse }
+   "Bool"   { L.TBool }
+   ':'      { L.TColumn }
 
    ident    { L.TIdent $$ }
 %%
@@ -32,7 +37,7 @@ Program : Expr                      { $1 }
 
 Expr :: { LE.Expr }
 Expr
-    : "fun" ident identList '->' Expr         { LE.lams $2 $3 $5 }
+    : "fun" Params "->" Expr                  { LE.lams $2 $4 }
     | "if" Expr "then" Expr "else" Expr       { LE.if_ $2 $4 $6}
     | "true"                                  { LE.true }
     | "false"                                 { LE.false }
@@ -40,14 +45,31 @@ Expr
     | ident                                   { LE.var $1 }
     | '(' Expr ')'                            { $2 }
 
-identList :: { [LE.Symb ]}
-identList : identList_                         { reverse $1 }
+Params : IdentWithType List(IdentWithType)    { $1 :| $2 }
 
-identList_ :: { [LE.Symb]}
-identList_
-    : {- empty -}                             { [] }
-    | identList ident                         { $2 : $1 }
+IdentWithType :: { (LE.Ident, TT.Type) }
+IdentWithType : '(' ident ':' TypeExpr ')'    { ($2, $4) }
 
+--------------------------- Types ------------------------------
+
+Bool : "Bool"                                 { TT.bool }
+
+TypeExpr :: { TT.Type }
+TypeExpr
+    : SimplType                               { $1 }
+    | TypeExpr "->" SimplType                 { TT.arrow $1 $3 }
+    | '(' TypeExpr ')'                        { $2 }
+
+SimplType :: { TT.Type }
+SimplType : Bool                                   { TT.bool }
+
+---------------------------- Helpers -------------------------
+
+List(p) : RevList(p)                          { reverse $1 }
+
+RevList(p)
+    : RevList(p) p                            { $2 : $1 }
+    | {- empty -}                             { [] }
 
 {
 parseError :: [L.Token] -> a

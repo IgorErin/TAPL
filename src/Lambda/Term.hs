@@ -1,15 +1,11 @@
-module Lambda.Term (Term(..), Type(..), Ident) where
+module Lambda.Term (Term(..), Ident) where
+
+import Lambda.Types(Type)
 
 type Ident = Int
 type Info = String
 
 infixl 4 :@:
-infixr 3 :->
-
-data Type =
-    Bool
-    | Type :-> Type
-    deriving (Read, Show, Eq)
 
 data Term =
     Idx Ident

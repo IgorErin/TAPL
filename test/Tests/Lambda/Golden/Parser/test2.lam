@@ -1,1 +1,1 @@
-Lam "x" (Lam "y" (Var "x"))
+Lam "x" Bool (Lam "y" (Bool :-> Bool) (Var "y" :@ Var "x"))

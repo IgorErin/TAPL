@@ -26,6 +26,9 @@ tokens :-
   "then"                { \_ -> TThen }
   "else"                { \_ -> TElse }
 
+  "Bool"                { \_ -> TBool }
+  ":"                   { \_ -> TColumn }
+
   @ident                { TIdent }
 
 {
@@ -34,6 +37,7 @@ data Token
   =
   TLParent
   | TRParent
+  | TColumn
 
   | TIf
   | TThen
@@ -41,6 +45,7 @@ data Token
 
   | TTrue
   | TFalse
+  | TBool
 
   | TLambda
   | TArrow
