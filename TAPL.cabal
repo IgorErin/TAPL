@@ -30,6 +30,7 @@ library
       Lambda.Convert
       Lambda.Eval
       Lambda.Expr
+      Lambda.Infer
       Lambda.Lexer
       Lambda.Parser
       Lambda.Term
