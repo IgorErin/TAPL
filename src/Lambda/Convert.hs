@@ -5,7 +5,7 @@ import Data.List (elemIndex)
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
-import qualified Lambda.Term as T (Term(..))
+import qualified Lambda.Term as T (Term(..), Type(..))
 import qualified Lambda.Expr as E (Expr(..), Symb)
 
 type Context = [E.Symb]
@@ -24,7 +24,8 @@ e2t term = (freeVars, helper freeVars term)
             right' = helper ctx right
         in left' :@: right'
     helper ctx (E.Lam name body) =
-        T.Lmb name $ helper (name : ctx) body
+        -- TODO add types to parser
+        T.Lmb name T.Bool $ helper (name : ctx) body
     helper ctx (E.If guard etrue efalse) =
         let guard' = helper ctx guard
             etrue' = helper ctx etrue
@@ -85,7 +86,7 @@ t2e ctx = helper 0 []
             left' = helper' left
             right' = helper' right
         in left' :@ right'
-    helper depth bound (T.Lmb name body) =
+    helper depth bound (T.Lmb name _ body) =
         let name' = newName name (bound ++ ctx)
             bound' = name' : bound
             depth' = succ depth

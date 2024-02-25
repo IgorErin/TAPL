@@ -1,0 +1,1 @@
+Lmb "s" Bool (Lmb "z" Bool (Idx 1 :@: (Idx 1 :@: Idx 0)))

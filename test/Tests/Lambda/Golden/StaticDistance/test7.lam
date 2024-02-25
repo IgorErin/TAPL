@@ -1,1 +1,1 @@
-(["z"],Lmb "x" (Idx 1) :@: Lmb "y" (Idx 1))
+([],Lmb "z" Bool (Lmb "x" Bool (Idx 1) :@: Lmb "y" Bool (Idx 1)))

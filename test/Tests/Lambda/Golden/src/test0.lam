@@ -1,1 +1,1 @@
-ident
+fun ident -> ident

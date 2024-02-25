@@ -1,1 +1,1 @@
-[TIdent "ident"]
+[TLambda,TIdent "ident",TArrow,TIdent "ident"]

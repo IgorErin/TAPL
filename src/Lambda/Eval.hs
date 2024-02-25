@@ -1,7 +1,7 @@
 module Lambda.Eval (
     shift, substDB, betaRuleDB,
-    callByNameStep, normalOrderStep, appOrderStep, callByValueStep,
-    eval
+    callByValueStep,
+    steps, eval
     ) where
 
 import Lambda.Term (Term(..), Ident)
@@ -16,7 +16,7 @@ shift k = helper 0
         let p' = helper m p
             q' = helper m q
         in  p' :@: q'
-    helper m (Lmb info p) = Lmb info $ helper (succ m) p
+    helper m (Lmb t info p) = Lmb t info $ helper (succ m) p
     helper m (If guard ifTrue ifFalse) =
         let go = helper m
 
@@ -37,7 +37,7 @@ substDB j n = helper
         let p' = helper p
             q' = helper q
         in p' :@: q'
-    helper (Lmb info p) = Lmb info $ substDB (succ j) (shift 1 n) p
+    helper (Lmb t info p) = Lmb t info $ substDB (succ j) (shift 1 n) p
     helper (If guard ifTrue ifFalse) =
         let guard' = helper guard
             ifTrue' = helper ifTrue
@@ -47,51 +47,37 @@ substDB j n = helper
     helper Fls = Fls
 
 betaRuleDB :: Term -> Term
-betaRuleDB ((Lmb _ t) :@: s) =
+betaRuleDB ((Lmb _ _ t) :@: s) =
     let s' = shift 1 s
         t' = substDB 0 s' t
     in shift (-1) t'
 betaRuleDB t = error $ "beta rule failed in " ++ show t
 
-callByNameStep :: Term -> Maybe Term
-callByNameStep (Idx _) = fail "Idx"
-callByNameStep (Lmb _ _) = fail "Lmb"
-callByNameStep r@(Lmb _ _ :@: _) = return $ betaRuleDB r
-callByNameStep (t1 :@: t2) = do
-    t1' <- callByNameStep t1
-    return $ t1' :@: t2
-callByNameStep _ = error "not implemented yet"
-
-normalOrderStep :: Term -> Maybe Term
-normalOrderStep (Idx _) = fail "Idx"
-normalOrderStep (Lmb info t) = Lmb info <$> normalOrderStep t
-normalOrderStep r@(Lmb _ _ :@: _) = return $ betaRuleDB r
-normalOrderStep (t1 :@: t2) = case normalOrderStep t1 of
-    Just t1' -> return $ t1' :@: t2
-    Nothing -> (t1 :@:) <$> normalOrderStep t2
-normalOrderStep _ = error "not implemented yet"
+isValue :: Term -> Bool
+isValue Lmb {} = True
+isValue Tru       = True
+isValue Fls       = True
+isValue _         = False
 
 callByValueStep :: Term -> Maybe Term
+callByValueStep (If Tru ifTrue _) = return ifTrue
+callByValueStep (If Fls _ ifFalse) = return ifFalse
+callByValueStep (If cond ifTrue ifFalse) = do
+    cond' <- callByValueStep cond
+    return $ If cond' ifTrue ifFalse
+callByValueStep (t1 :@: t2) | not $ isValue t1 = do
+    t1' <- callByValueStep t1
+    return $ t1' :@: t2
+callByValueStep (t1 :@: t2) | isValue t1 && not (isValue t2) = do
+    t2' <- callByValueStep t2
+    return $ t1 :@: t2'
+callByValueStep r@(Lmb {} :@: value) | isValue value =
+    return $ betaRuleDB r
 callByValueStep (Idx _) = fail "Idx"
-callByValueStep (Lmb _ _) = fail "Lmb"
-callByValueStep r@(Lmb info body :@: arg) = case callByValueStep arg of
-    Just arg' -> return (Lmb info body :@: arg')
-    Nothing   -> return $ betaRuleDB r
-callByValueStep (t1 :@: t2) = case callByValueStep t1 of
-    Just t1' -> return $ t1' :@: t2
-    Nothing  -> (t1 :@:) <$> callByValueStep t2
-callByValueStep _ = error "not implemented yet"
-
-appOrderStep :: Term -> Maybe Term
-appOrderStep (Idx _) = fail "Idx"
-appOrderStep (Lmb info body) = Lmb info <$> appOrderStep body
-appOrderStep r@(Lmb info body :@: arg) = case appOrderStep arg of
-    Just arg' -> return (Lmb info body :@: arg')
-    Nothing   -> return $ betaRuleDB r
-appOrderStep (t1 :@: t2) = case appOrderStep t1 of
-    Just t1' -> return $ t1' :@: t2
-    Nothing  -> (t1 :@:) <$> appOrderStep t2
-appOrderStep _ = error "not implemented yet"
+callByValueStep (Lmb {}) = fail "Lmb"
+callByValueStep Tru = fail "Tru"
+callByValueStep Fls = fail "Fls"
+callByValueStep (_ :@: _) = fail "App"
 
 steps :: (a -> Maybe a) -> a -> [a]
 steps f i = helper (Just i)

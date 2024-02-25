@@ -1,1 +1,1 @@
-fun x -> x y z
+(fun y z -> fun x -> x y z)

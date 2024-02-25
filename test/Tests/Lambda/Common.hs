@@ -1,4 +1,4 @@
-module Tests.Lambda.Common (run) where
+module Tests.Lambda.Common (runShow, runString) where
 
 import Test.Tasty (testGroup, TestTree)
 import Test.Tasty.Golden (goldenVsStringDiff, findByExtension)
@@ -9,18 +9,10 @@ import Data.Text.Lazy.Encoding    as TL
 
 import System.FilePath (takeDirectory, replaceBaseName, replaceDirectory, (</>))
 
-run :: Show a => String -> (String -> a) -> IO TestTree
-run name testFun = do
-  srcPaths' <- srcPaths
-  tests <- mapM (mkTest name testFun) srcPaths'
-
-  return $ testGroup name tests 
-
 srcPaths :: IO [FilePath]
 srcPaths = findByExtension [".lam"] $ "test" </> "Tests" </> "Lambda" </> "Golden" </> "src"
 
-stringToByteString :: String -> ByteString
-stringToByteString = TL.encodeUtf8 . TL.pack
+---------------------- Helpers ----------------------------------
 
 mkResultPath :: FilePath -> String -> FilePath
 mkResultPath srcPath name =
@@ -28,12 +20,35 @@ mkResultPath srcPath name =
       dir' = replaceBaseName dir name
   in replaceDirectory srcPath dir'
 
-mkTest :: Show a => String -> (String -> a) -> FilePath -> IO TestTree
+stringToByteString :: String -> ByteString
+stringToByteString = TL.encodeUtf8 . TL.pack
+
+showToBS :: Show a => a -> ByteString
+showToBS item = stringToByteString $ show item
+
+-------------------------- Special -----------------------------
+
+runShow :: Show a => String -> (String -> a) -> IO TestTree
+runShow name testFun = run name (showToBS . testFun)
+
+runString :: String -> (String -> String) -> IO TestTree
+runString name testFun = run name (stringToByteString . testFun)
+
+------------------------- General ---------------------------------
+
+run :: String -> (String -> ByteString) -> IO TestTree
+run name testFun = do
+  srcPaths' <- srcPaths
+  tests <- mapM (mkTest name testFun) srcPaths'
+
+  return $ testGroup name tests
+
+mkTest :: String -> (String -> ByteString) -> FilePath -> IO TestTree
 mkTest name testFun srcPath  = do
   src <- Prelude.readFile srcPath
 
   let result = testFun src
-  let bsResult = stringToByteString $ show result
+  let bsResult = result
   let resultPath = mkResultPath srcPath name
   let ioResult = return bsResult
 

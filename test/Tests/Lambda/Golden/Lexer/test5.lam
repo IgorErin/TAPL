@@ -1,1 +1,1 @@
-[TLambda,TIdent "x",TArrow,TIdent "x",TIdent "y",TIdent "z"]
+[TLParent,TLambda,TIdent "y",TIdent "z",TArrow,TLambda,TIdent "x",TArrow,TIdent "x",TIdent "y",TIdent "z",TRParent]

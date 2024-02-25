@@ -1,1 +1,1 @@
-Lam "x" (Var "z") :@ Lam "y" (Var "z")
+Lam "z" (Lam "x" (Var "z") :@ Lam "y" (Var "z"))
