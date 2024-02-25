@@ -1,0 +1,1 @@
+Lam "z" (Lam "z0" (Var "z0" :@ Var "z0"))

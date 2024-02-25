@@ -1,0 +1,1 @@
+fun s z -> s (s z)

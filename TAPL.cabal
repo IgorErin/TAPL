@@ -27,17 +27,27 @@ library
   exposed-modules:
       Arith.Ast
       Arith.Eval
-      Lib
+      Lambda.Convert
+      Lambda.Eval
+      Lambda.Expr
+      Lambda.Lexer
+      Lambda.Parser
+      Lambda.Term
   other-modules:
       Paths_TAPL
   autogen-modules:
       Paths_TAPL
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XNoFieldSelectors -XNamedFieldPuns
+  build-tools:
+      alex
+    , happy
   build-depends:
-      base >=4.7 && <5
-    , mtl
+      array
+    , base
+    , bytestring
+    , containers
   default-language: Haskell2010
 
 executable TAPL-exe
@@ -58,7 +68,9 @@ test-suite TAPL-test
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
-      Arith
+      Tests.Arith
+      Tests.Lambda.All
+      Tests.Lambda.Common
       Paths_TAPL
   autogen-modules:
       Paths_TAPL
@@ -68,6 +80,10 @@ test-suite TAPL-test
   build-depends:
       TAPL
     , base >=4.7 && <5
+    , bytestring
+    , filepath
     , tasty
+    , tasty-golden
     , tasty-hunit
+    , text
   default-language: Haskell2010

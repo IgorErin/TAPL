@@ -1,0 +1,1 @@
+(fun x -> z) (fun z y -> (fun d -> x))

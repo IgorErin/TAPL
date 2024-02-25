@@ -1,0 +1,1 @@
+Lam "s" (Lam "z" (Var "s" :@ Var "z"))

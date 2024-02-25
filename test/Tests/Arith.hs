@@ -1,4 +1,4 @@
-module Arith (tests) where
+module Tests.Arith (tests) where
 
 import Test.Tasty ( TestTree, testGroup )
 import Test.Tasty.HUnit ((@?=), testCase)

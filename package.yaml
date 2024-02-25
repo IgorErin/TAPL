@@ -37,8 +37,18 @@ library:
   source-dirs: src
   ghc-options:
   - -XOverloadedStrings
+  - -XNoFieldSelectors
+  - -XNamedFieldPuns
   dependencies:
   - mtl
+  dependencies:
+  - array
+  - base
+  - bytestring
+  - containers
+  build-tool-depends:
+  - alex
+  - happy
 
 executables:
   TAPL-exe:
@@ -63,3 +73,7 @@ tests:
     - TAPL
     - tasty
     - tasty-hunit
+    - tasty-golden
+    - filepath
+    - text
+    - bytestring
