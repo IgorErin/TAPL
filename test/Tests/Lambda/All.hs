@@ -11,10 +11,7 @@ import qualified Lambda.Term        as LT (Term)
 import qualified Lambda.Lexer       as LL (alexScanTokens, Token)
 import qualified Lambda.Parser      as LR (run)
 import qualified Lambda.Eval        as LEval (callByValueStep, steps, eval)
-import qualified Lambda.Infer       as Infer (run)
-
-import qualified Lambda.Types       as Types (Type)
-
+import qualified Lambda.Infer       as Infer (run, Result)
 
 tests :: IO TestTree
 tests = testGroup "Lambda" <$>
@@ -76,7 +73,7 @@ callByValueEval str =
 callByValueEvalTests :: IO TestTree
 callByValueEvalTests = TestLambda.runShow "byValue" callByValueEval
 
-infer :: String -> Maybe Types.Type
+infer :: String -> Infer.Result
 infer = Infer.run . snd . staticDistance
 
 inferTests :: IO TestTree

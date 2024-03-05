@@ -50,6 +50,7 @@ library
     , base
     , bytestring
     , containers
+    , mtl
   default-language: Haskell2010
 
 executable TAPL-exe

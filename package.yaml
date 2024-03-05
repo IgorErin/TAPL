@@ -40,12 +40,11 @@ library:
   - -XNoFieldSelectors
   - -XNamedFieldPuns
   dependencies:
-  - mtl
-  dependencies:
   - array
   - base
   - bytestring
   - containers
+  - mtl
   build-tool-depends:
   - alex
   - happy
