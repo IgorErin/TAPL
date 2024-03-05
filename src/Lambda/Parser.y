@@ -31,13 +31,15 @@ import Data.List.NonEmpty hiding (reverse)
    "Bool"   { L.TBoolType }
    "Unit"   { L.TUnitType }
 
+   '_'      { L.TWildCard }
+
    ':'      { L.TColumn }
 
    ident    { L.TIdent $$ }
 %%
 
 Program :: { LE.Expr }
-Program : Expr                      { $1 }
+Program : Expr                                { $1 }
 
 Expr :: { LE.Expr }
 Expr
@@ -47,13 +49,22 @@ Expr
     | "false"                                 { LE.false }
     | "()"                                    { LE.unit }
     | Expr Expr                               { LE.app $1 $2 }
-    | ident                                   { LE.var $1 }
+    | Var                                     { $1 }
     | '(' Expr ')'                            { $2 }
 
-Params : IdentWithType List(IdentWithType)    { $1 :| $2 }
+Var :: { LE.Expr }
+Var : ident                                   { LE.var $1 }
 
-IdentWithType :: { (LE.Ident, TT.Type) }
-IdentWithType : '(' ident ':' TypeExpr ')'    { ($2, $4) }
+Params :: { NonEmpty (LE.Binder, TT.Type) }
+    : BinderWithType List(BinderWithType)     { $1 :| $2 }
+
+Binder :: { LE.Binder }
+Binder
+    : ident                                   { Just $1 }
+    | '_'                                     { Nothing }
+
+BinderWithType :: { (LE.Binder, TT.Type) }
+BinderWithType : '(' Binder ':' TypeExpr ')'  { ($2, $4) }
 
 --------------------------- Types ------------------------------
 

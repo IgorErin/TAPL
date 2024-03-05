@@ -1,5 +1,5 @@
 module Lambda.Expr  (
-    Expr(..), Ident,
+    Expr(..), Ident, Binder,
     var, app, lam, lams,
     if_, false, true,
     unit
@@ -11,6 +11,8 @@ import Lambda.Types (Type)
 
 type Ident = String
 
+type Binder = Maybe Ident
+
 infixl 4 :@
 
 data Expr =
@@ -20,7 +22,7 @@ data Expr =
     | Unit
     | If Expr Expr Expr
     | Expr :@ Expr
-    | Lam Ident Type Expr
+    | Lam Binder Type Expr
     deriving (Eq, Read, Show)
 
 true :: Expr
@@ -38,10 +40,10 @@ var = Var
 app :: Expr -> Expr -> Expr
 app = (:@)
 
-lam :: Ident -> Type -> Expr -> Expr
+lam :: Binder -> Type -> Expr -> Expr
 lam = Lam
 
-lams :: NonEmpty (Ident, Type) -> Expr -> Expr
+lams :: NonEmpty (Binder, Type) -> Expr -> Expr
 lams ((ident, ty) :| tl) expr = lam ident ty $ helper tl
     where
     helper [] = expr

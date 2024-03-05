@@ -3,7 +3,7 @@ module Lambda.Term (Term(..), Ident) where
 import Lambda.Types(Type)
 
 type Ident = Int
-type Info = String
+type Info = Maybe String
 
 infixl 4 :@:
 

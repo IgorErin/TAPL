@@ -7,8 +7,9 @@ import Lambda.Expr (Expr((:@)))
 
 import qualified Lambda.Term as T (Term(..))
 import qualified Lambda.Expr as E (Expr(..), Ident)
+import Data.Maybe
 
-type Context = [E.Ident]
+type Context = [Maybe E.Ident]
 
 e2t :: E.Expr -> (Context, T.Term)
 e2t term = (freeVars, helper freeVars term)
@@ -16,7 +17,7 @@ e2t term = (freeVars, helper freeVars term)
     freeVars = reverse $ fetchFree term
 
     helper :: Context -> E.Expr -> T.Term
-    helper ctx (E.Var name) = case elemIndex name ctx of
+    helper ctx (E.Var name) = case elemIndex (Just name) ctx of
         Just number -> T.Idx number
         Nothing     -> error $ "undefined reference: " ++ name
     helper ctx (left :@ right) =
@@ -36,16 +37,16 @@ e2t term = (freeVars, helper freeVars term)
 
 addVar :: E.Ident -> Context -> Context
 addVar symb ctx =
-    if symb `elem` ctx
+    if Just symb `elem` ctx
     then ctx
-    else symb : ctx
+    else Just symb : ctx
 
 fetchFree :: E.Expr -> Context
 fetchFree = helper [] []
     where
     helper :: Context -> Context -> Expr -> Context
     helper bound free (E.Var name) =
-        if name `elem` bound
+        if Just name `elem` bound
         then free
         else addVar name free
     helper bound free (left :@ right) =
@@ -65,12 +66,12 @@ fetchFree = helper [] []
 
 newName :: E.Ident -> Context -> E.Ident
 newName var ctx
-    | var `elem` ctx = helper 0 var
+    | Just var `elem` ctx = helper 0 var
     | otherwise      = var
     where
     helper :: Int -> E.Ident -> E.Ident
     helper count name
-        | name' `elem` ctx = helper (succ count) name
+        | Just name' `elem` ctx = helper (succ count) name
         | otherwise        = name'
         where name' = name ++ show count
 
@@ -79,8 +80,8 @@ t2e ctx = helper 0 []
     where
     helper :: Int -> Context -> Term -> Expr
     helper depth bound (T.Idx ident)
-        | ident >= depth = E.Var $ ctx !! (ident - length bound)
-        | otherwise      = E.Var $ bound !! ident
+        | ident >= depth = E.Var $ fromJust $ ctx !! (ident - length bound)
+        | otherwise      = E.Var $ fromJust $ bound !! ident
     helper depth bound (left :@: right) =
         let helper' = helper depth bound
 
@@ -88,7 +89,7 @@ t2e ctx = helper 0 []
             right' = helper' right
         in left' :@ right'
     helper depth bound (T.Lmb name ty body) =
-        let name' = newName name (bound ++ ctx)
+        let name' = name >>= (\ x -> return $ newName x (bound ++ ctx))
             bound' = name' : bound
             depth' = succ depth
         in E.Lam name' ty $ helper depth' bound' body

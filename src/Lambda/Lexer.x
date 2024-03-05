@@ -31,6 +31,8 @@ tokens :-
   "Bool"                { \_ -> TBoolType }
   "Unit"                { \_ -> TUnitType }
 
+  "_"                   { \_ -> TWildCard }
+
   ":"                   { \_ -> TColumn }
 
   @ident                { TIdent }
@@ -54,6 +56,8 @@ data Token
   | TBoolType
   | TUnitType
 
+  | TWildCard
+  
   | TLambda
   | TArrow
   | TIdent String
