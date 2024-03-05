@@ -1,2 +1,2 @@
-Lmb "x" Unit (Idx 0) :@: Tru
+Lmb (Just "x") Unit (Idx 0) :@: Tru
 Tru

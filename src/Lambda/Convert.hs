@@ -7,15 +7,13 @@ import Lambda.Expr (Expr((:@)))
 
 import qualified Lambda.Term as T (Term(..))
 import qualified Lambda.Expr as E (Expr(..), Ident)
-import Data.Maybe
+import Data.Maybe ( fromJust )
 
 type Context = [Maybe E.Ident]
 
-e2t :: E.Expr -> (Context, T.Term)
-e2t term = (freeVars, helper freeVars term)
+e2t :: E.Expr -> T.Term
+e2t = helper []
     where
-    freeVars = reverse $ fetchFree term
-
     helper :: Context -> E.Expr -> T.Term
     helper ctx (E.Var name) = case elemIndex (Just name) ctx of
         Just number -> T.Idx number
@@ -35,35 +33,6 @@ e2t term = (freeVars, helper freeVars term)
     helper _ E.Fls = T.Fls
     helper _ E.Unit = T.Unit
 
-addVar :: E.Ident -> Context -> Context
-addVar symb ctx =
-    if Just symb `elem` ctx
-    then ctx
-    else Just symb : ctx
-
-fetchFree :: E.Expr -> Context
-fetchFree = helper [] []
-    where
-    helper :: Context -> Context -> Expr -> Context
-    helper bound free (E.Var name) =
-        if Just name `elem` bound
-        then free
-        else addVar name free
-    helper bound free (left :@ right) =
-        let free' = helper bound free left
-        in helper bound free' right
-    helper bound free (E.Lam name _ body) =
-        let bound' = name : bound
-        in helper bound' free body
-    helper bound free (E.If guard etrue efalse) =
-        let free'   = helper bound free   guard
-            free''  = helper bound free'  etrue
-            free''' = helper bound free'' efalse
-        in free'''
-    helper _ free E.Tru = free
-    helper _ free E.Fls = free
-    helper _ free E.Unit = free
-
 newName :: E.Ident -> Context -> E.Ident
 newName var ctx
     | Just var `elem` ctx = helper 0 var
@@ -75,12 +44,12 @@ newName var ctx
         | otherwise        = name'
         where name' = name ++ show count
 
-t2e :: Context -> Term -> Expr
-t2e ctx = helper 0 []
+t2e :: Term -> Expr
+t2e = helper 0 []
     where
     helper :: Int -> Context -> Term -> Expr
     helper depth bound (T.Idx ident)
-        | ident >= depth = E.Var $ fromJust $ ctx !! (ident - length bound)
+        | ident >= depth = error "free index in term"
         | otherwise      = E.Var $ fromJust $ bound !! ident
     helper depth bound (left :@: right) =
         let helper' = helper depth bound
@@ -89,7 +58,7 @@ t2e ctx = helper 0 []
             right' = helper' right
         in left' :@ right'
     helper depth bound (T.Lmb name ty body) =
-        let name' = name >>= (\ x -> return $ newName x (bound ++ ctx))
+        let name' = name >>= (\ x -> return $ newName x bound)
             bound' = name' : bound
             depth' = succ depth
         in E.Lam name' ty $ helper depth' bound' body

@@ -13,7 +13,7 @@ import Data.List.NonEmpty hiding (reverse)
 %error      { parseError }
 
 %token
-    "fun"   { L.TLambda }
+   "fun"   { L.TLambda }
 
    '('      { L.TLParent }
    ')'      { L.TRParent }

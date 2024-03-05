@@ -1,1 +1,1 @@
-Lam "z" Bool (Lam "x" Bool (Var "z") :@ Lam "y" Bool (Var "z"))
+Lam (Just "z") Bool (Lam (Just "x") Bool (Var "z") :@ Lam (Just "y") Bool (Var "z"))

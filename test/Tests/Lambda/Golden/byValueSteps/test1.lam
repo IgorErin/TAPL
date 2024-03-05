@@ -1,1 +1,1 @@
-Lmb "x" (Bool :-> Bool) (Idx 0)
+Lmb (Just "x") (Bool :-> Bool) (Idx 0)

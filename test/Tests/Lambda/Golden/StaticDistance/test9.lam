@@ -1,1 +1,1 @@
-([],Lmb "s" (Bool :-> Bool) (Lmb "z" Bool (Idx 1 :@: (Idx 1 :@: Idx 0))))
+Lmb (Just "s") (Bool :-> Bool) (Lmb (Just "z") Bool (Idx 1 :@: (Idx 1 :@: Idx 0)))

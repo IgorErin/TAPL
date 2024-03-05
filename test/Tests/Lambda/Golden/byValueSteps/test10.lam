@@ -1,4 +1,4 @@
-Lmb "x" Bool (If (Idx 0) Tru Fls) :@: If Fls Tru Fls
-Lmb "x" Bool (If (Idx 0) Tru Fls) :@: Fls
+Lmb (Just "x") Bool (If (Idx 0) Tru Fls) :@: If Fls Tru Fls
+Lmb (Just "x") Bool (If (Idx 0) Tru Fls) :@: Fls
 If Fls Tru Fls
 Fls

@@ -3,7 +3,7 @@ module Tests.Lambda.All(tests) where
 import Test.Tasty (TestTree, testGroup)
 import Tests.Lambda.Common as TestLambda (runShow, runString)
 
-import qualified Lambda.Convert     as LC (e2t, t2e, Context)
+import qualified Lambda.Convert     as LC (e2t, t2e)
 
 import qualified Lambda.Expr        as LE (Expr)
 import qualified Lambda.Term        as LT (Term)
@@ -37,7 +37,7 @@ parser = LR.run . lexer
 parserTests :: IO TestTree
 parserTests = TestLambda.runShow "Parser" parser
 
-staticDistance :: String -> (LC.Context, LT.Term)
+staticDistance :: String -> LT.Term
 staticDistance = LC.e2t . parser
 
 staticDistanceTests :: IO TestTree
@@ -45,36 +45,32 @@ staticDistanceTests = TestLambda.runShow "StaticDistance" staticDistance
 
 backToNames :: String -> LE.Expr
 backToNames str =
-    let (ctx, term) = staticDistance str
-    in LC.t2e ctx term
+    let term = staticDistance str
+    in LC.t2e term
 
 backToNamesTests :: IO TestTree
 backToNamesTests = TestLambda.runShow "BackToNames" backToNames
 
 callByValueEvalSteps :: String -> String
 callByValueEvalSteps str =
-    let (ctx, term) = staticDistance str
+    let term = staticDistance str
         termSteps = LEval.steps LEval.callByValueStep term
         str' = unlines $ map show termSteps
-    in case ctx of
-        [] -> str'
-        _ : _ -> error $ "Free vasr in term: " ++ show ctx
+    in str'
 
 callByValueEvalStepsTests :: IO TestTree
 callByValueEvalStepsTests  = TestLambda.runString "byValueSteps" callByValueEvalSteps
 
 callByValueEval :: String -> LT.Term
 callByValueEval str =
-    let (ctx, term) = staticDistance str
-    in case ctx of
-        [] -> LEval.eval LEval.callByValueStep term
-        _ : _ -> error $ "Free vasr in term: " ++ show ctx
+    let term = staticDistance str
+    in LEval.eval LEval.callByValueStep term
 
 callByValueEvalTests :: IO TestTree
 callByValueEvalTests = TestLambda.runShow "byValue" callByValueEval
 
 infer :: String -> Infer.Result
-infer = Infer.run . snd . staticDistance
+infer = Infer.run . staticDistance
 
 inferTests :: IO TestTree
 inferTests = TestLambda.runShow "Infer" infer
