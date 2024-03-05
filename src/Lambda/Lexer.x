@@ -27,6 +27,8 @@ tokens :-
   "else"                { \_ -> TElse }
 
   "Bool"                { \_ -> TBool }
+  "Unit"                { \_ -> TUnit }
+  
   ":"                   { \_ -> TColumn }
 
   @ident                { TIdent }
@@ -42,10 +44,12 @@ data Token
   | TIf
   | TThen
   | TElse
-
+  -- values
   | TTrue
   | TFalse
+  -- types
   | TBool
+  | TUnit
 
   | TLambda
   | TArrow

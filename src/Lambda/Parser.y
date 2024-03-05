@@ -26,7 +26,10 @@ import Data.List.NonEmpty hiding (reverse)
    "if"     { L.TIf }
    "then"   { L.TThen }
    "else"   { L.TElse }
+
    "Bool"   { L.TBool }
+   "Unit"   { L.TUnit }
+
    ':'      { L.TColumn }
 
    ident    { L.TIdent $$ }
@@ -52,8 +55,6 @@ IdentWithType : '(' ident ':' TypeExpr ')'    { ($2, $4) }
 
 --------------------------- Types ------------------------------
 
-Bool : "Bool"                                 { TT.bool }
-
 TypeExpr :: { TT.Type }
 TypeExpr
     : SimplType                               { $1 }
@@ -61,7 +62,9 @@ TypeExpr
     | '(' TypeExpr ')'                        { $2 }
 
 SimplType :: { TT.Type }
-SimplType : Bool                                   { TT.bool }
+SimplType
+    : "Bool"                                  { TT.bool }
+    | "Unit"                                  { TT.unit }
 
 ---------------------------- Helpers -------------------------
 
