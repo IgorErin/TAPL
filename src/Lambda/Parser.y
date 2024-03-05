@@ -35,6 +35,8 @@ import Data.List.NonEmpty hiding (reverse)
 
    ':'      { L.TColumn }
 
+   "as"     { L.TAs }
+
    ident    { L.TIdent $$ }
 %%
 
@@ -51,6 +53,7 @@ Expr
     | Expr Expr                               { LE.app $1 $2 }
     | Var                                     { $1 }
     | '(' Expr ')'                            { $2 }
+    | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }

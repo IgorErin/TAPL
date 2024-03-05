@@ -35,6 +35,8 @@ tokens :-
 
   ":"                   { \_ -> TColumn }
 
+  "as"                  { \_ -> TAs }
+
   @ident                { TIdent }
 
 {
@@ -48,6 +50,9 @@ data Token
   | TIf
   | TThen
   | TElse
+
+  | TAs
+
   -- values
   | TTrue
   | TFalse
@@ -57,7 +62,7 @@ data Token
   | TUnitType
 
   | TWildCard
-  
+
   | TLambda
   | TArrow
   | TIdent String

@@ -2,10 +2,11 @@ module Lambda.Expr  (
     Expr(..), Ident, Binder,
     var, app, lam, lams,
     if_, false, true,
-    unit
+    unit,
+    ascription
 ) where
 
-import Data.List.NonEmpty
+import Data.List.NonEmpty ( NonEmpty(..) )
 
 import Lambda.Types (Type)
 
@@ -51,3 +52,6 @@ lams ((ident, ty) :| tl) expr = lam ident ty $ helper tl
 
 unit :: Expr
 unit = Unit
+
+ascription :: Expr -> Type -> Expr
+ascription e t = Lam (Just "x") t (Var "x") :@ e
