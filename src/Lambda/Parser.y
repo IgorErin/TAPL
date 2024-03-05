@@ -37,6 +37,10 @@ import Data.List.NonEmpty hiding (reverse)
 
    "as"     { L.TAs }
 
+   "let"    { L.TLet }
+   "in"     { L.TIn }
+   '='      { L.TEq }
+
    ident    { L.TIdent $$ }
 %%
 
@@ -54,6 +58,7 @@ Expr
     | Var                                     { $1 }
     | '(' Expr ')'                            { $2 }
     | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
+    | "let" ident '=' Expr "in" Expr          { LE.let_ $2 $4 $6 }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }

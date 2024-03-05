@@ -37,6 +37,10 @@ tokens :-
 
   "as"                  { \_ -> TAs }
 
+  "let"                 { \_ -> TLet}
+  "in"                  { \_ -> TIn }
+  "="                   { \_ -> TEq }
+
   @ident                { TIdent }
 
 {
@@ -50,9 +54,12 @@ data Token
   | TIf
   | TThen
   | TElse
-
+  -- ascription
   | TAs
-
+  -- let binding
+  | TLet
+  | TIn
+  | TEq 
   -- values
   | TTrue
   | TFalse

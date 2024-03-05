@@ -32,6 +32,7 @@ e2t = helper []
     helper _ E.Tru = T.Tru
     helper _ E.Fls = T.Fls
     helper _ E.Unit = T.Unit
+    helper _ (E.Let {}) = error "Let case"
 
 newName :: E.Ident -> Context -> E.Ident
 newName var ctx

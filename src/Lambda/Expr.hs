@@ -3,7 +3,8 @@ module Lambda.Expr  (
     var, app, lam, lams,
     if_, false, true,
     unit,
-    ascription
+    ascription,
+    let_
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
@@ -24,6 +25,7 @@ data Expr =
     | If Expr Expr Expr
     | Expr :@ Expr
     | Lam Binder Type Expr
+    | Let Ident Expr Expr
     deriving (Eq, Read, Show)
 
 true :: Expr
@@ -55,3 +57,6 @@ unit = Unit
 
 ascription :: Expr -> Type -> Expr
 ascription e t = Lam (Just "x") t (Var "x") :@ e
+
+let_ :: Ident -> Expr -> Expr -> Expr
+let_ = Let
