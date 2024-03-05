@@ -32,6 +32,7 @@ e2t term = (freeVars, helper freeVars term)
         in T.If guard' etrue' efalse'
     helper _ E.Tru = T.Tru
     helper _ E.Fls = T.Fls
+    helper _ E.Unit = T.Unit
 
 addVar :: E.Ident -> Context -> Context
 addVar symb ctx =
@@ -60,6 +61,7 @@ fetchFree = helper [] []
         in free'''
     helper _ free E.Tru = free
     helper _ free E.Fls = free
+    helper _ free E.Unit = free
 
 newName :: E.Ident -> Context -> E.Ident
 newName var ctx
@@ -99,3 +101,4 @@ t2e ctx = helper 0 []
         in E.If guard' ttrue' tfalse'
     helper _ _ T.Tru = E.Tru
     helper _ _ T.Fls = E.Fls
+    helper _ _ T.Unit = E.Unit

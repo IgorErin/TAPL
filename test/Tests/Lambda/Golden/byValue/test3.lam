@@ -1,1 +1,1 @@
-Lmb "y" ((Bool :-> Bool) :-> Bool) (Lmb "z" ((Bool :-> Bool) :-> Bool) (Idx 0))
+Lmb "x" Unit (If Tru Fls (Idx 0))

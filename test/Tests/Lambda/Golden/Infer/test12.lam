@@ -1,1 +1,1 @@
-Left "Arg type mismatch"
+Left "Arg type mismatch types must be same.\n Bool <> Unit."

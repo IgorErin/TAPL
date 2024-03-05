@@ -1,7 +1,8 @@
 module Lambda.Expr  (
     Expr(..), Ident,
     var, app, lam, lams,
-    if_, false, true
+    if_, false, true,
+    unit
 ) where
 
 import Data.List.NonEmpty
@@ -16,6 +17,7 @@ data Expr =
     Var Ident
     | Tru
     | Fls
+    | Unit
     | If Expr Expr Expr
     | Expr :@ Expr
     | Lam Ident Type Expr
@@ -44,3 +46,6 @@ lams ((ident, ty) :| tl) expr = lam ident ty $ helper tl
     where
     helper [] = expr
     helper ((id', ty') : tl') = lam id' ty' $ helper tl'
+
+unit :: Expr
+unit = Unit

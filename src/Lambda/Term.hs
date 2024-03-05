@@ -11,6 +11,7 @@ data Term =
     Idx Ident
     | Tru
     | Fls
+    | Unit
     | If Term Term Term
     | Term :@: Term
     | Lmb Info Type Term

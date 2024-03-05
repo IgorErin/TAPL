@@ -1,1 +1,1 @@
-([],Lmb "x" (Bool :-> Bool) (Lmb "y" ((Bool :-> Bool) :-> Bool) (Idx 1)) :@: (Lmb "x" Bool (Idx 0) :@: Lmb "z" ((Bool :-> Bool) :-> Bool) (Idx 0)))
+([],Lmb "x" Unit (If Tru Fls (Idx 0)))

@@ -26,6 +26,7 @@ shift k = helper 0
         in If guard' ifTrue' ifFalse'
     helper _ Tru = Tru
     helper _ Fls = Fls
+    helper _ Unit = Unit
 
 substDB :: Ident -> Term -> Term -> Term
 substDB j n = helper
@@ -45,6 +46,7 @@ substDB j n = helper
         in If guard' ifTrue' ifFalse'
     helper Tru = Tru
     helper Fls = Fls
+    helper Unit = Unit
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -77,6 +79,7 @@ callByValueStep (Idx _) = fail "Idx"
 callByValueStep (Lmb {}) = fail "Lmb"
 callByValueStep Tru = fail "Tru"
 callByValueStep Fls = fail "Fls"
+callByValueStep Unit = fail "Unit"
 callByValueStep (_ :@: _) = fail "App"
 
 steps :: (a -> Maybe a) -> a -> [a]

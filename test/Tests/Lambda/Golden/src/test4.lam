@@ -1,1 +1,1 @@
-(fun (z: Bool) (x: Bool) -> (fun (x: Bool) -> z) (fun (z: Bool) (y: Bool) -> (fun (d: Bool) -> x)))
+(fun (x: Unit) -> if x then () else ())

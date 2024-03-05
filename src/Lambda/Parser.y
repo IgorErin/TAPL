@@ -22,13 +22,14 @@ import Data.List.NonEmpty hiding (reverse)
 
    "true"   { L.TTrue }
    "false"  { L.TFalse }
+   "()"     { L.TUnit }
 
    "if"     { L.TIf }
    "then"   { L.TThen }
    "else"   { L.TElse }
 
-   "Bool"   { L.TBool }
-   "Unit"   { L.TUnit }
+   "Bool"   { L.TBoolType }
+   "Unit"   { L.TUnitType }
 
    ':'      { L.TColumn }
 
@@ -44,6 +45,7 @@ Expr
     | "if" Expr "then" Expr "else" Expr       { LE.if_ $2 $4 $6}
     | "true"                                  { LE.true }
     | "false"                                 { LE.false }
+    | "()"                                    { LE.unit }
     | Expr Expr                               { LE.app $1 $2 }
     | ident                                   { LE.var $1 }
     | '(' Expr ')'                            { $2 }

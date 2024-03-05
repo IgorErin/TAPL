@@ -1,1 +1,1 @@
-Lam "z" Bool (Lam "x" Bool (Lam "x" Bool (Var "z") :@ Lam "z" Bool (Lam "y" Bool (Lam "d" Bool (Var "x")))))
+Lam "x" Unit (If (Var "x") Unit Unit)

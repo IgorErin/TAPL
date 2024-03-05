@@ -1,1 +1,1 @@
-[TLambda,TLParent,TIdent "ident",TColumn,TBool,TRParent,TArrow,TIdent "ident"]
+[TLambda,TLParent,TIdent "ident",TColumn,TBoolType,TRParent,TArrow,TIdent "ident"]

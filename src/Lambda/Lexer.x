@@ -19,16 +19,18 @@ tokens :-
   "->"                  { \_ -> TArrow   }
   "("                   { \_ -> TLParent }
   ")"                   { \_ -> TRParent }
+
   "true"                { \_ -> TTrue }
   "false"               { \_ -> TFalse }
+  "()"                  { \_ -> TUnit}
 
   "if"                  { \_ -> TIf }
   "then"                { \_ -> TThen }
   "else"                { \_ -> TElse }
 
-  "Bool"                { \_ -> TBool }
-  "Unit"                { \_ -> TUnit }
-  
+  "Bool"                { \_ -> TBoolType }
+  "Unit"                { \_ -> TUnitType }
+
   ":"                   { \_ -> TColumn }
 
   @ident                { TIdent }
@@ -47,9 +49,10 @@ data Token
   -- values
   | TTrue
   | TFalse
-  -- types
-  | TBool
   | TUnit
+  -- types
+  | TBoolType
+  | TUnitType
 
   | TLambda
   | TArrow

@@ -1,1 +1,1 @@
-([],Lmb "z" Bool (Lmb "x" Bool (Lmb "x" Bool (Idx 2) :@: Lmb "z" Bool (Lmb "y" Bool (Lmb "d" Bool (Idx 3))))))
+([],Lmb "x" Unit (If (Idx 0) Unit Unit))

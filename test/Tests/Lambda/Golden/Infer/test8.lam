@@ -1,1 +1,1 @@
-Left "Arrow expected in application"
+Left "Expected function type like: Bool -> _. Actual: Bool"
