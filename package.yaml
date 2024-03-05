@@ -10,6 +10,8 @@ extra-source-files:
 - README.md
 - CHANGELOG.md
 
+tested-with: GHC ==9.6.3
+
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            Web
@@ -45,6 +47,8 @@ library:
   - bytestring
   - containers
   - mtl
+  - fmt
+  - text
   build-tool-depends:
   - alex
   - happy
