@@ -5,34 +5,48 @@ import Data.List (elemIndex)
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
-import qualified Lambda.Term as T (Term(..))
+import qualified Lambda.Term as T (Term(..), Ident)
 import qualified Lambda.Expr as E (Expr(..), Ident)
 import Data.Maybe ( fromJust )
+
+import Control.Monad.Reader
 
 type Context = [Maybe E.Ident]
 
 e2t :: E.Expr -> T.Term
-e2t = helper []
+e2t e = runReader (helper e) []
     where
-    helper :: Context -> E.Expr -> T.Term
-    helper ctx (E.Var name) = case elemIndex (Just name) ctx of
-        Just number -> T.Idx number
-        Nothing     -> error $ "undefined reference: " ++ name
-    helper ctx (left :@ right) =
-        let left' = helper ctx left
-            right' = helper ctx right
-        in left' :@: right'
-    helper ctx (E.Lam name ty body) =
-        T.Lmb name ty $ helper (name : ctx) body
-    helper ctx (E.If guard etrue efalse) =
-        let guard' = helper ctx guard
-            etrue' = helper ctx etrue
-            efalse' = helper ctx efalse
-        in T.If guard' etrue' efalse'
-    helper _ E.Tru = T.Tru
-    helper _ E.Fls = T.Fls
-    helper _ E.Unit = T.Unit
-    helper _ (E.Let {}) = error "Let case"
+    nameToIndex :: E.Ident -> Reader Context T.Ident
+    nameToIndex name = do
+        ls <- ask
+
+        case elemIndex (Just name) ls of
+            Just number -> return number
+            Nothing     -> error $ "undefined reference: " ++ name
+
+    helper :: E.Expr -> Reader Context T.Term
+    helper (E.Var name) = T.Idx <$> nameToIndex name
+    helper (left :@ right) = do
+        left' <- helper left
+        right' <- helper right
+
+        return $ left' :@: right'
+    helper (E.Lam name ty body) = do
+        body' <- local (name:) $ helper body
+
+        return $ T.Lmb name ty body'
+    helper (E.If guard etrue efalse) = do
+        guard' <- helper guard
+        etrue' <- helper etrue
+        efalse' <- helper efalse
+
+        return $ T.If guard' etrue' efalse'
+    helper E.Tru = return T.Tru
+    helper E.Fls = return T.Fls
+    helper E.Unit = return T.Unit
+    helper (E.Let {}) = error "Let case"
+
+data BackContext = BContext { depth :: Int, ctx :: Context }
 
 newName :: E.Ident -> Context -> E.Ident
 newName var ctx
@@ -46,30 +60,40 @@ newName var ctx
         where name' = name ++ show count
 
 t2e :: Term -> Expr
-t2e = helper 0 []
+t2e t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
     where
-    helper :: Int -> Context -> Term -> Expr
-    helper depth bound (T.Idx ident)
-        | ident >= depth = error "free index in term"
-        | otherwise      = E.Var $ fromJust $ bound !! ident
-    helper depth bound (left :@: right) =
-        let helper' = helper depth bound
+    getName :: T.Ident -> Reader BackContext E.Ident
+    getName ident = do
+        BContext { depth, ctx } <- ask
 
-            left' = helper' left
-            right' = helper' right
-        in left' :@ right'
-    helper depth bound (T.Lmb name ty body) =
-        let name' = name >>= (\ x -> return $ newName x bound)
-            bound' = name' : bound
-            depth' = succ depth
-        in E.Lam name' ty $ helper depth' bound' body
-    helper depth bound (T.If guard ttrue tfalse) =
-        let helper' = helper depth bound
+        if ident >= depth
+        then error "free index in term"
+        else return $ fromJust $ ctx !! ident
 
-            guard' = helper' guard
-            ttrue' = helper' ttrue
-            tfalse' = helper' tfalse
-        in E.If guard' ttrue' tfalse'
-    helper _ _ T.Tru = E.Tru
-    helper _ _ T.Fls = E.Fls
-    helper _ _ T.Unit = E.Unit
+    helper :: Term -> Reader BackContext Expr
+    helper (T.Idx ident) = E.Var <$> getName ident
+    helper (left :@: right) = do
+        left' <- helper left
+        right' <- helper right
+
+        return $ left' :@ right'
+    helper (T.Lmb name ty body) = do
+        BContext { depth = _, ctx = c } <- ask
+
+        let name' = flip newName c <$> name
+        -- TODO rewrite
+        body' <- local
+            (\ BContext{ depth, ctx} ->
+                 BContext { depth = succ depth, ctx = name' : ctx})
+            $ helper body
+
+        return $ E.Lam name' ty body'
+    helper (T.If guard ttrue tfalse) = do
+        guard' <- helper guard
+        ttrue' <- helper ttrue
+        tfalse' <- helper tfalse
+
+        return $ E.If guard' ttrue' tfalse'
+    helper T.Tru = return E.Tru
+    helper T.Fls = return E.Fls
+    helper T.Unit = return E.Unit
