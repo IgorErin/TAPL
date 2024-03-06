@@ -1,29 +1,29 @@
 module Lambda.Infer (run, Result) where
 
-import Lambda.Term    as Te (Term(..))
+import Lambda.Term    as Te (Term(..), Ident)
 import Lambda.Types   as Ty (Type(..))
 
 import Control.Monad.Except (MonadError(throwError))
+import Control.Monad.Reader
 
-import Data.Text
-import Fmt
+import Data.Text (Text)
+import Fmt ( (+|), (+||), (|+), (||+) )
 
 type Env = [Ty.Type]
-type Info = Text
 
-type Result = Either Info Ty.Type
+type Info = Text
 
 ---------------- Check helpers -----------------
 
-checkEqType :: Ty.Type -> Ty.Type -> Info -> Either Info ()
+checkEqType :: Ty.Type -> Ty.Type -> Info -> Infer ()
 checkEqType f s i
     | f == s    = return ()
     | otherwise = throwError i
 
-checkBool :: Ty.Type -> Info -> Either Info ()
+checkBool :: Ty.Type -> Info -> Infer ()
 checkBool = checkEqType Bool
 
-splitArrow :: Ty.Type -> Info -> Either Info (Ty.Type, Ty.Type)
+splitArrow :: Ty.Type -> Info -> Infer (Ty.Type, Ty.Type)
 splitArrow t i = case t of
     argT :-> bodyT -> return (argT, bodyT)
     _              -> throwError i
@@ -49,33 +49,40 @@ mkTypeEqInfo Nothing firstT secondT =
 
 ------------------ Infer ---------------------------
 
-run :: Term -> Either Info Type
-run = infer' []
+type Infer a = ReaderT Env (Either Info) a
+
+type Result = Either Info Type
+
+run :: Term -> Result
+run t = runReaderT (infer' t) []
     where
-    infer' :: Env -> Term -> Either Info Type
-    infer' _ Tru = return Bool
-    infer' _ Fls = return Bool
-    infer' _ Te.Unit = return Ty.Unit
-    infer' env (If cond ifTrue ifFalse) = do
-        condT    <- infer' env cond
+    typeofIdent :: Te.Ident -> Infer Type
+    typeofIdent ident = asks (!! ident)
+
+    infer' ::Term -> Infer Type
+    infer' Tru = return Bool
+    infer' Fls = return Bool
+    infer' Te.Unit = return Ty.Unit
+    infer' (If cond ifTrue ifFalse) = do
+        condT    <- infer' cond
         checkBool condT $ mkCondIsBoolInfo condT
 
-        ifTrueT  <- infer' env ifTrue
-        ifFalseT <- infer' env ifFalse
+        ifTrueT  <- infer' ifTrue
+        ifFalseT <- infer' ifFalse
         checkEqType ifTrueT ifFalseT $ mkBranchInfo ifTrueT ifFalseT
 
         return ifTrueT
-    infer' env (Idx v) = return $ env !! v
-    infer' env (Lmb _ ty body) = do
-        let env' = ty : env
-        bodyT <- infer' env' body
+    infer' (Idx v) = typeofIdent v
+    infer' (Lmb _ ty body) = do
+        bodyT <- local (ty:) $ infer' body
 
         return $ ty :-> bodyT
-    infer' env (t1 :@: t2) = do
-        t1T <- infer' env t1
-        t2T <- infer' env t2
+    infer' (t1 :@: t2) = do
+        t1T <- infer' t1
+        t2T <- infer' t2
 
         (argT, bodyT) <- splitArrow t1T $ mkSplitArrowInfo t2T t1T
 
-        checkEqType t2T argT $ mkTypeEqInfo (Just "Arg type mismatch") t2T argT
+        let errorInfo = mkTypeEqInfo (Just "Arg type mismatch") t2T argT
+        checkEqType t2T argT errorInfo
         return bodyT

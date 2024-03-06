@@ -10,6 +10,7 @@ import qualified Lambda.Expr as E (Expr(..), Ident)
 import Data.Maybe ( fromJust )
 
 import Control.Monad.Reader
+    ( MonadReader(local, ask), runReader, Reader )
 
 type Context = [Maybe E.Ident]
 
