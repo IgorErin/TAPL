@@ -1,1 +1,1 @@
-Lam (Just "x") (Bool :-> Bool) (Var "x")
+Let "f" Fls (Let "t" Tru (If (Var "t") (Var "f") (Var "t")))

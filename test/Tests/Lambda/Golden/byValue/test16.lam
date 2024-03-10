@@ -1,1 +1,1 @@
-Lmb (Just "x") Bool (Idx 0)
+Right (Lmb (Just "x") Bool (Idx 0))

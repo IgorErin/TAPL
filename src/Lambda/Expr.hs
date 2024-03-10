@@ -26,7 +26,7 @@ data Expr =
     | Expr :@ Expr
     | Lam Binder Type Expr
     | Let Ident Expr Expr
-    deriving (Eq, Read, Show)
+    deriving (Eq, Show)
 
 true :: Expr
 true = Tru

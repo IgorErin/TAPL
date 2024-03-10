@@ -1,1 +1,4 @@
-Lmb (Just "x") (Bool :-> Bool) (Idx 0)
+Lmb (Just "f") Bool (Lmb (Just "t") Bool (If (Idx 0) (Idx 1) (Idx 0)) :@: Tru) :@: Fls
+Lmb (Just "t") Bool (If (Idx 0) Fls (Idx 0)) :@: Tru
+If Tru Fls Tru
+Fls

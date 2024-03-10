@@ -1,1 +1,1 @@
-Lam (Just "x") Unit (Var "x")
+Right (Lam (Just "x") Unit (Var "x"))

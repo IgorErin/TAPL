@@ -1,1 +1,1 @@
-Lmb (Just "x") Bool (If (Idx 0) Tru Fls) :@: If Fls Tru Fls
+Right (Lmb (Just "x") Bool (If (Idx 0) Tru Fls) :@: If Fls Tru Fls)

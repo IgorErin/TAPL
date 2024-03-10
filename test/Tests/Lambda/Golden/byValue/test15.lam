@@ -1,1 +1,1 @@
-Lmb (Just "x") Unit (Idx 0) :@: Unit
+Right (Lmb (Just "x") Unit (Idx 0) :@: Unit)

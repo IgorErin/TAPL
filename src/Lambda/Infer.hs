@@ -1,4 +1,4 @@
-module Lambda.Infer (run, Result) where
+module Lambda.Infer (run, Info, Result) where
 
 import Lambda.Term    as Te (Term(..), Ident)
 import Lambda.Types   as Ty (Type(..))

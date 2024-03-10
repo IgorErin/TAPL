@@ -29,7 +29,8 @@ library
   exposed-modules:
       Arith.Ast
       Arith.Eval
-      Lambda.Convert
+      Lambda.Convert.ToExpr
+      Lambda.Convert.ToTerm
       Lambda.Eval
       Lambda.Expr
       Lambda.Infer
