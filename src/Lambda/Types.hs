@@ -4,13 +4,16 @@ module Lambda.Types (
     arrow
 ) where
 
+import Lambda.Ident (Label)
+
 infixr 3 :->
 
 data Type =
     Bool
     | Unit
     | Type :-> Type
-    deriving (Read, Show, Eq)
+    | Record (Label, Type)
+    deriving (Show, Eq)
 
 bool :: Type
 bool = Bool

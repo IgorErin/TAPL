@@ -33,6 +33,7 @@ library
       Lambda.Convert.ToTerm
       Lambda.Eval
       Lambda.Expr
+      Lambda.Ident
       Lambda.Infer
       Lambda.Lexer
       Lambda.Parser

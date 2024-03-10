@@ -4,6 +4,7 @@ module Lambda.Parser where
 import qualified Lambda.Lexer as L
 import qualified Lambda.Expr as LE
 import qualified Lambda.Types as TT
+import qualified Lambda.Ident as LI
 
 import Data.List.NonEmpty hiding (reverse)
 }
@@ -17,6 +18,9 @@ import Data.List.NonEmpty hiding (reverse)
 
    '('      { L.TLParent }
    ')'      { L.TRParent }
+
+   '{'      { L.TLCurlyBrace }
+   '}'      { L.TRCurlyBrace }
 
    "->"     { L.TArrow }
 
@@ -34,6 +38,9 @@ import Data.List.NonEmpty hiding (reverse)
    '_'      { L.TWildCard }
 
    ':'      { L.TColumn }
+
+   '.'      { L.TDot }
+   ','      { L.TComma }
 
    "as"     { L.TAs }
 
@@ -59,12 +66,13 @@ Expr
     | '(' Expr ')'                            { $2 }
     | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
     | "let" ident '=' Expr "in" Expr          { LE.let_ $2 $4 $6 }
+    |  Record                                 { LE.record $1 }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }
 
 Params :: { NonEmpty (LE.Binder, TT.Type) }
-    : BinderWithType List(BinderWithType)     { $1 :| $2 }
+    : BinderWithType list(BinderWithType)     { $1 :| $2 }
 
 Binder :: { LE.Binder }
 Binder
@@ -73,6 +81,11 @@ Binder
 
 BinderWithType :: { (LE.Binder, TT.Type) }
 BinderWithType : '(' Binder ':' TypeExpr ')'  { ($2, $4) }
+
+Record : '{' sep (RecordInit, ',') '}'        { $2 }
+
+RecordInit :: { (LI.Label, LE.Expr) }
+RecordInit : ident '=' Expr                      { ($1, $3) }
 
 --------------------------- Types ------------------------------
 
@@ -87,13 +100,26 @@ SimplType
     : "Bool"                                  { TT.bool }
     | "Unit"                                  { TT.unit }
 
----------------------------- Helpers -------------------------
+----------------------------- New helpers -----------------
 
-List(p) : RevList(p)                          { reverse $1 }
+fst(p, q)        : p q                 { $1 }
+snd(p, q)        : p q                 { $2 }
+both(p, q)       : p q                 { ($1,$2) }
 
-RevList(p)
-    : RevList(p) p                            { $2 : $1 }
-    | {- empty -}                             { [] }
+opt(p)          : p                   { Just $1 }
+                |                     { Nothing }
+
+list(p) : rev_list(p)                 { reverse $1 }
+
+rev_list(p)
+    : list(p) p                       { $2 : $1 }
+    | {- empty -}                     { [] }
+
+non_empty_list(p) : p list(p)         { $1 :| $2 }
+
+sep(p, s)
+    : p list(snd(s, p))               { $1 : $2 }
+    | {- empty -}                     { [] }
 
 {
 parseError :: [L.Token] -> a

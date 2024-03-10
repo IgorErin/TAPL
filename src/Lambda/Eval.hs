@@ -4,7 +4,8 @@ module Lambda.Eval (
     steps, eval
     ) where
 
-import Lambda.Term (Term(..), Ident)
+import Lambda.Term (Term(..))
+import Lambda.Ident
 
 shift :: Int -> Term -> Term
 shift k = helper 0
@@ -27,8 +28,9 @@ shift k = helper 0
     helper _ Tru = Tru
     helper _ Fls = Fls
     helper _ Unit = Unit
+    helper _ (Record {}) = error "Record"
 
-substDB :: Ident -> Term -> Term -> Term
+substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
     where
     helper t@(Idx n')
@@ -47,6 +49,7 @@ substDB j n = helper
     helper Tru = Tru
     helper Fls = Fls
     helper Unit = Unit
+    helper (Record {}) = error "record"
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -81,6 +84,7 @@ callByValueStep Tru = fail "Tru"
 callByValueStep Fls = fail "Fls"
 callByValueStep Unit = fail "Unit"
 callByValueStep (_ :@: _) = fail "App"
+callByValueStep (Record {}) = error "record"
 
 steps :: (a -> Maybe a) -> a -> [a]
 steps f i = helper (Just i)

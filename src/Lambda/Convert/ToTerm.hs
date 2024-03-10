@@ -5,15 +5,16 @@ import Data.List (elemIndex)
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
-import qualified Lambda.Term as T (Term(..), Ident)
-import qualified Lambda.Expr as E (Expr(..), Ident)
+import qualified Lambda.Term as T (Term(..))
+import qualified Lambda.Expr as E (Expr(..))
+import qualified Lambda.Ident as I (Name, Index)
 
 import qualified Lambda.Infer as I (run, Info)
 
 import Control.Monad.Reader
     (MonadReader(local, ask), ReaderT, runReaderT, lift)
 
-type Context = [Maybe E.Ident]
+type Context = [Maybe I.Name]
 
 type Result = Either I.Info T.Term
 
@@ -22,7 +23,7 @@ type HelperContext a = ReaderT Context (Either I.Info) a
 run :: E.Expr -> Result
 run e = runReaderT (helper e) []
     where
-    nameToIndex :: E.Ident -> HelperContext T.Ident
+    nameToIndex :: I.Name -> HelperContext I.Index
     nameToIndex name = do
         ls <- ask
 
@@ -57,3 +58,4 @@ run e = runReaderT (helper e) []
         let lam = E.Lam (Just name) ty body
 
         helper $ lam :@ expr
+    helper (E.Record {}) = error "record "

@@ -3,8 +3,10 @@ module Lambda.Convert.ToExpr (run) where
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
-import qualified Lambda.Term as T (Term(..), Ident)
-import qualified Lambda.Expr as E (Expr(..), Ident)
+import qualified Lambda.Term as T (Term(..))
+import qualified Lambda.Expr as E (Expr(..))
+
+import qualified Lambda.Ident as I
 
 import Data.Maybe ( fromJust )
 
@@ -12,14 +14,14 @@ import Control.Monad.Reader (runReader, MonadReader (local, ask), Reader)
 
 data BackContext = BContext { depth :: Int, ctx :: Context }
 
-type Context = [Maybe E.Ident]
+type Context = [Maybe I.Name]
 
-newName :: E.Ident -> Context -> E.Ident
+newName :: I.Name -> Context -> I.Name
 newName var ctx
     | Just var `elem` ctx = helper 0 var
     | otherwise      = var
     where
-    helper :: Int -> E.Ident -> E.Ident
+    helper :: Int -> I.Name -> I.Name
     helper count name
         | Just name' `elem` ctx = helper (succ count) name
         | otherwise        = name'
@@ -28,7 +30,7 @@ newName var ctx
 run :: Term -> Expr
 run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
     where
-    getName :: T.Ident -> Reader BackContext E.Ident
+    getName :: I.Index -> Reader BackContext I.Name
     getName ident = do
         BContext { depth, ctx } <- ask
 
@@ -63,3 +65,4 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
     helper T.Tru = return E.Tru
     helper T.Fls = return E.Fls
     helper T.Unit = return E.Unit
+    helper T.Record {} = undefined 

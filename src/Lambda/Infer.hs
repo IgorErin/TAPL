@@ -1,7 +1,8 @@
 module Lambda.Infer (run, Info, Result) where
 
-import Lambda.Term    as Te (Term(..), Ident)
+import Lambda.Term    as Te (Term(..))
 import Lambda.Types   as Ty (Type(..))
+import Lambda.Ident   as I  (Index )
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
@@ -56,7 +57,7 @@ type Result = Either Info Type
 run :: Term -> Result
 run t = runReaderT (infer' t) []
     where
-    typeofIdent :: Te.Ident -> Infer Type
+    typeofIdent :: I.Index -> Infer Type
     typeofIdent ident = asks (!! ident)
 
     infer' ::Term -> Infer Type
@@ -86,3 +87,4 @@ run t = runReaderT (infer' t) []
         let errorInfo = mkTypeEqInfo (Just "Arg type mismatch") t2T argT
         checkEqType t2T argT errorInfo
         return bodyT
+    infer' (Te.Record {}) = undefined

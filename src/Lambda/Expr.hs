@@ -1,31 +1,32 @@
 module Lambda.Expr  (
-    Expr(..), Ident, Binder,
+    Expr(..), Binder,
     var, app, lam, lams,
     if_, false, true,
     unit,
     ascription,
-    let_
+    let_,
+    record
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
 
 import Lambda.Types (Type)
+import Lambda.Ident (Name, Label)
 
-type Ident = String
-
-type Binder = Maybe Ident
+type Binder = Maybe Name
 
 infixl 4 :@
 
 data Expr =
-    Var Ident
+    Var Name
     | Tru
     | Fls
     | Unit
     | If Expr Expr Expr
     | Expr :@ Expr
     | Lam Binder Type Expr
-    | Let Ident Expr Expr
+    | Let Name Expr Expr
+    | Record [(Label, Expr)]
     deriving (Eq, Show)
 
 true :: Expr
@@ -37,7 +38,7 @@ false = Fls
 if_ :: Expr -> Expr -> Expr -> Expr
 if_ = If
 
-var :: Ident -> Expr
+var :: Name -> Expr
 var = Var
 
 app :: Expr -> Expr -> Expr
@@ -58,5 +59,8 @@ unit = Unit
 ascription :: Expr -> Type -> Expr
 ascription e t = Lam (Just "x") t (Var "x") :@ e
 
-let_ :: Ident -> Expr -> Expr -> Expr
+let_ :: Name -> Expr -> Expr -> Expr
 let_ = Let
+
+record :: [(Name, Expr)] -> Expr
+record = Record

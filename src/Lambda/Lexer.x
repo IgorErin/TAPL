@@ -17,8 +17,12 @@ tokens :-
   "fun"                 { \_ -> TLambda  }
 
   "->"                  { \_ -> TArrow   }
+
   "("                   { \_ -> TLParent }
   ")"                   { \_ -> TRParent }
+
+  "{"                   { \_ -> TLCurlyBrace }
+  "}"                   { \_ -> TRCurlyBrace }
 
   "true"                { \_ -> TTrue }
   "false"               { \_ -> TFalse }
@@ -41,30 +45,42 @@ tokens :-
   "in"                  { \_ -> TIn }
   "="                   { \_ -> TEq }
 
+  ","                   { \_ -> TComma }
+  "."                   { \_ -> TDot }
+
   @ident                { TIdent }
 
 {
 
 data Token
   =
+  -- ( )
   TLParent
   | TRParent
-  | TColumn
 
+  -- { }
+  | TRCurlyBrace
+  | TLCurlyBrace
+
+  | TColumn
+  | TDot
+  | TComma
+
+  -- if then else
   | TIf
   | TThen
   | TElse
   -- ascription
   | TAs
-  -- let binding
+  -- let in
   | TLet
   | TIn
-  | TEq 
+  | TEq
   -- values
   | TTrue
   | TFalse
   | TUnit
-  -- types
+  -- builtin types
   | TBoolType
   | TUnitType
 

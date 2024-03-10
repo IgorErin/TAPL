@@ -1,18 +1,19 @@
-module Lambda.Term (Term(..), Ident) where
+module Lambda.Term (Term(..)) where
 
 import Lambda.Types(Type)
+import Lambda.Ident (Index, Label)
 
-type Ident = Int
 type Info = Maybe String
 
 infixl 4 :@:
 
 data Term =
-    Idx Ident
+    Idx Index
     | Tru
     | Fls
     | Unit
     | If Term Term Term
     | Term :@: Term
     | Lmb Info Type Term
-    deriving (Eq, Read, Show)
+    | Record [(Label, Term)] Type
+    deriving (Eq, Show)
