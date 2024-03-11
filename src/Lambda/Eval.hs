@@ -7,6 +7,8 @@ module Lambda.Eval (
 import Lambda.Term (Term(..))
 import Lambda.Ident (Index)
 
+import Data.List (find)
+
 -- TODO duplication shift and substDB
 
 shift :: Int -> Term -> Term
@@ -31,6 +33,7 @@ shift k = helper 0
     helper _ Fls = Fls
     helper _ Unit = Unit
     helper m (Record ls) = Record $ (helper m <$>) <$> ls
+    helper m (Get t lb)  = Get (helper m t) lb
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -52,6 +55,7 @@ substDB j n = helper
     helper Fls = Fls
     helper Unit = Unit
     helper (Record ls) =  Record $ (helper <$>) <$> ls
+    helper (Get t lb) = Get (helper t) lb
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -83,6 +87,7 @@ callByValueStep (t1 :@: t2) | isValue t1 && not (isValue t2) = do
     return $ t1 :@: t2'
 callByValueStep r@(Lmb {} :@: value) | isValue value =
     return $ betaRuleDB r
+-- Record
 callByValueStep (Record ls) =
     let run (hd@(lb, term) : tl)
             | isValue term = (hd:) <$> run tl
@@ -92,6 +97,18 @@ callByValueStep (Record ls) =
                 return $ (lb, term') : tl
         run []             =  Nothing
     in Record <$> run ls
+-- Get
+callByValueStep (Get r@(Record ls) lb) | isValue r =
+    case find ((== lb) . fst) ls of
+        Just t -> return $ snd t
+        Nothing -> error ""
+callByValueStep (Get t lb) | not $ isValue t = do
+    t' <- callByValueStep t
+
+    return $ Get t' lb
+callByValueStep (Get t lb) =
+    error $ "Attemt to get" ++ show lb ++ "on" ++ show t
+-- Stack
 callByValueStep (Idx _) = fail "Idx"
 callByValueStep (Lmb {}) = fail "Lmb"
 callByValueStep Tru = fail "Tru"

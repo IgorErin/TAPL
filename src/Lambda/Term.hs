@@ -19,4 +19,5 @@ data Term =
     | Term :@: Term
     | Lmb Info Type Term
     | Record Record
+    | Get Term Label 
     deriving (Eq, Show)

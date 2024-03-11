@@ -1,11 +1,13 @@
 module Lambda.Infer (run, Info, Result) where
 
-import Lambda.Term    as Te (Term(..), Field, Record)
+import Lambda.Term    as Te (Term(..), Field)
 import Lambda.Types   as Ty (Type(..), Field, Record)
 import Lambda.Ident   as I  (Index, Label)
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
+
+import Data.List (find)
 
 import Data.Text (Text)
 import Fmt ( (+|), (+||), (|+), (||+) )
@@ -35,6 +37,12 @@ splitArrow :: Ty.Type -> Info -> Infer (Ty.Type, Ty.Type)
 splitArrow t i = case t of
     argT :-> bodyT -> return (argT, bodyT)
     _              -> throwError i
+
+checkGetType :: Ty.Type -> I.Label -> Infer Ty.Type
+checkGetType ty@(Ty.Record ls) lb = case find ((== lb) . fst) ls of
+        Just x -> return $ snd x
+        Nothing -> throwError $ "Attemt to get "+||lb||+"on type:"+||ty||+". No such field."
+checkGetType ty lb = throwError $ "Attemt to get "+||lb||+"on type:"+||ty||+"."
 
 ------------------ Message helpers -----------------
 
@@ -101,3 +109,8 @@ run t = runReaderT (typeOf t) []
         checkEqType t2T argT errorInfo
         return bodyT
     typeOf (Te.Record ls) = Ty.Record <$> mapM typeOfField ls
+    typeOf (Te.Get term lb) = do
+        termT <- typeOf term
+
+        checkGetType termT lb
+

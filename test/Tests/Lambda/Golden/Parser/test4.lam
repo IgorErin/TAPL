@@ -1,1 +1,1 @@
-Lam (Just "x") Unit (If (Var "x") Unit Unit)
+Let "x" (Record [("t",Tru),("y",Fls)]) (If (Get (Var "x") "t") (Get (Var "x") "y") (Get (Var "x") "t"))

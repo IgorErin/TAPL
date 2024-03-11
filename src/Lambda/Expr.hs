@@ -5,7 +5,7 @@ module Lambda.Expr  (
     unit,
     ascription,
     let_,
-    record
+    record, get
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
@@ -17,6 +17,9 @@ type Binder = Maybe Name
 
 infixl 4 :@
 
+type Field = (Label, Expr)
+type Record = [Field]
+
 data Expr =
     Var Name
     | Tru
@@ -26,7 +29,8 @@ data Expr =
     | Expr :@ Expr
     | Lam Binder Type Expr
     | Let Name Expr Expr
-    | Record [(Label, Expr)]
+    | Record Record
+    | Get Expr Label
     deriving (Eq, Show)
 
 true :: Expr
@@ -64,3 +68,6 @@ let_ = Let
 
 record :: [(Name, Expr)] -> Expr
 record = Record
+
+get :: Expr -> Label -> Expr
+get = Get

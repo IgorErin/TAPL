@@ -66,7 +66,8 @@ Expr
     | '(' Expr ')'                            { $2 }
     | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
     | "let" ident '=' Expr "in" Expr          { LE.let_ $2 $4 $6 }
-    |  RecordExpr                             { LE.record $1 }
+    | RecordExpr                              { LE.record $1 }
+    | Expr '.' Label                          { LE.get $1 $3 }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }

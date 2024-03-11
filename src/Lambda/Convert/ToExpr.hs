@@ -69,3 +69,7 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
         ls' <- mapM (mapM helper) ls
 
         return $ E.Record ls'
+    helper (T.Get term lb) = do
+        term' <- helper term
+
+        return $ E.Get term' lb

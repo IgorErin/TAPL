@@ -68,3 +68,7 @@ run e = runReaderT (helper e) []
         ls' <- mapM runRecordField ls
 
         return $ T.Record ls'
+    helper (E.Get expr lb) = do
+        term <- helper expr
+
+        return $ T.Get term lb
