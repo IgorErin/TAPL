@@ -1,1 +1,1 @@
-Left "In If branchase types must be same.\n Bool <> Unit."
+Right (Record [("u",Unit),("t",Bool)])

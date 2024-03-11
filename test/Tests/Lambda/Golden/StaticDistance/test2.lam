@@ -1,1 +1,1 @@
-Right (Lmb (Just "x") Bool (Lmb (Just "y") (Bool :-> Bool) (Idx 0 :@: Idx 1)))
+Right (Lmb (Just "x") (Record [("t",Bool),("f",Bool)]) (Idx 0) :@: Record [("t",Tru),("f",Fls)])

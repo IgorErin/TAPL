@@ -1,1 +1,3 @@
-Lmb (Just "x") Unit (If Tru Fls (Idx 0))
+Lmb (Just "x") (Record [("t",Bool),("u",Unit)]) (Lmb (Just "x") (Record [("u",Unit),("t",Bool)]) (Idx 0) :@: Idx 0) :@: Record [("t",Tru),("u",Unit)]
+Lmb (Just "x") (Record [("u",Unit),("t",Bool)]) (Idx 0) :@: Record [("t",Tru),("u",Unit)]
+Record [("t",Tru),("u",Unit)]

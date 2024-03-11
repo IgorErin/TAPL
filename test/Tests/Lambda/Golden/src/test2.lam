@@ -1,1 +1,1 @@
-(fun (x: Bool) (y: Bool -> Bool) -> y x)
+let x = { t = true, f = false } in x

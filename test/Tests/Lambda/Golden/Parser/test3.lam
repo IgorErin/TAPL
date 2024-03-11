@@ -1,1 +1,1 @@
-Lam (Just "x") Unit (If Tru Fls (Var "x"))
+Let "x" (Record [("t",Tru),("u",Unit)]) (Lam (Just "x") (Record [("u",Unit),("t",Bool)]) (Var "x") :@ Var "x")

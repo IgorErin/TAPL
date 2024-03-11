@@ -1,1 +1,2 @@
-Lmb (Just "x") Bool (Lmb (Just "y") (Bool :-> Bool) (Idx 0 :@: Idx 1))
+Lmb (Just "x") (Record [("t",Bool),("f",Bool)]) (Idx 0) :@: Record [("t",Tru),("f",Fls)]
+Record [("t",Tru),("f",Fls)]

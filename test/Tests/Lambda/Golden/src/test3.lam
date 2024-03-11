@@ -1,1 +1,2 @@
-(fun (x: Unit) -> if true then false else x)
+let x = {t = true, u = ()} in
+(fun (x: {u: Unit, t: Bool}) -> x) x

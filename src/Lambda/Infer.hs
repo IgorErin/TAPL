@@ -1,8 +1,8 @@
 module Lambda.Infer (run, Info, Result) where
 
-import Lambda.Term    as Te (Term(..))
-import Lambda.Types   as Ty (Type(..))
-import Lambda.Ident   as I  (Index )
+import Lambda.Term    as Te (Term(..), Field, Record)
+import Lambda.Types   as Ty (Type(..), Field, Record)
+import Lambda.Ident   as I  (Index, Label)
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
@@ -17,6 +17,13 @@ type Info = Text
 ---------------- Check helpers -----------------
 
 checkEqType :: Ty.Type -> Ty.Type -> Info -> Infer ()
+checkEqType (Ty.Record ll) (Ty.Record rl) i =
+    let containse :: Ty.Record -> Ty.Record -> Bool
+        containse (hd : tl) l2 = hd `elem` l2 && containse tl l2
+        containse []        _  = True
+    in if containse ll rl && containse rl ll
+       then return ()
+       else throwError i
 checkEqType f s i
     | f == s    = return ()
     | otherwise = throwError i
@@ -55,36 +62,42 @@ type Infer a = ReaderT Env (Either Info) a
 type Result = Either Info Type
 
 run :: Term -> Result
-run t = runReaderT (infer' t) []
+run t = runReaderT (typeOf t) []
     where
     typeofIdent :: I.Index -> Infer Type
     typeofIdent ident = asks (!! ident)
 
-    infer' ::Term -> Infer Type
-    infer' Tru = return Bool
-    infer' Fls = return Bool
-    infer' Te.Unit = return Ty.Unit
-    infer' (If cond ifTrue ifFalse) = do
-        condT    <- infer' cond
+    typeOfField :: Te.Field -> Infer Ty.Field
+    typeOfField  (lb, term) = do
+        tt <- typeOf term
+
+        return (lb, tt)
+
+    typeOf :: Term -> Infer Type
+    typeOf Tru = return Bool
+    typeOf Fls = return Bool
+    typeOf Te.Unit = return Ty.Unit
+    typeOf (If cond ifTrue ifFalse) = do
+        condT    <- typeOf cond
         checkBool condT $ mkCondIsBoolInfo condT
 
-        ifTrueT  <- infer' ifTrue
-        ifFalseT <- infer' ifFalse
+        ifTrueT  <- typeOf ifTrue
+        ifFalseT <- typeOf ifFalse
         checkEqType ifTrueT ifFalseT $ mkBranchInfo ifTrueT ifFalseT
 
         return ifTrueT
-    infer' (Idx v) = typeofIdent v
-    infer' (Lmb _ ty body) = do
-        bodyT <- local (ty:) $ infer' body
+    typeOf (Idx v) = typeofIdent v
+    typeOf (Lmb _ ty body) = do
+        bodyT <- local (ty:) $ typeOf body
 
         return $ ty :-> bodyT
-    infer' (t1 :@: t2) = do
-        t1T <- infer' t1
-        t2T <- infer' t2
+    typeOf (t1 :@: t2) = do
+        t1T <- typeOf t1
+        t2T <- typeOf t2
 
         (argT, bodyT) <- splitArrow t1T $ mkSplitArrowInfo t2T t1T
 
         let errorInfo = mkTypeEqInfo (Just "Arg type mismatch") t2T argT
         checkEqType t2T argT errorInfo
         return bodyT
-    infer' (Te.Record {}) = undefined
+    typeOf (Te.Record ls) = Ty.Record <$> mapM typeOfField ls

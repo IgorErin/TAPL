@@ -7,14 +7,14 @@ import Lambda.Expr (Expr((:@)))
 
 import qualified Lambda.Term as T (Term(..))
 import qualified Lambda.Expr as E (Expr(..))
-import qualified Lambda.Ident as I (Name, Index)
+import qualified Lambda.Ident as Id (Label, Name, Index)
 
 import qualified Lambda.Infer as I (run, Info)
 
 import Control.Monad.Reader
     (MonadReader(local, ask), ReaderT, runReaderT, lift)
 
-type Context = [Maybe I.Name]
+type Context = [Maybe Id.Name]
 
 type Result = Either I.Info T.Term
 
@@ -23,13 +23,19 @@ type HelperContext a = ReaderT Context (Either I.Info) a
 run :: E.Expr -> Result
 run e = runReaderT (helper e) []
     where
-    nameToIndex :: I.Name -> HelperContext I.Index
+    nameToIndex :: Id.Name -> HelperContext Id.Index
     nameToIndex name = do
         ls <- ask
 
         case elemIndex (Just name) ls of
             Just number -> return number
             Nothing     -> error $ "undefined reference: " ++ name
+
+    runRecordField :: (Id.Label, Expr) -> HelperContext (Id.Label, Term)
+    runRecordField (lb, expr) = do
+        term  <- helper expr
+
+        return (lb, term)
 
     helper :: E.Expr -> HelperContext T.Term
     helper (E.Var name) = T.Idx <$> nameToIndex name
@@ -58,4 +64,7 @@ run e = runReaderT (helper e) []
         let lam = E.Lam (Just name) ty body
 
         helper $ lam :@ expr
-    helper (E.Record {}) = error "record "
+    helper (E.Record ls) = do
+        ls' <- mapM runRecordField ls
+
+        return $ T.Record ls'

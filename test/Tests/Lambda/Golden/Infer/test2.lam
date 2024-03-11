@@ -1,1 +1,1 @@
-Right (Bool :-> ((Bool :-> Bool) :-> Bool))
+Right (Record [("t",Bool),("f",Bool)])

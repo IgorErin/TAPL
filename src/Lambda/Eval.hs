@@ -5,7 +5,9 @@ module Lambda.Eval (
     ) where
 
 import Lambda.Term (Term(..))
-import Lambda.Ident
+import Lambda.Ident (Index)
+
+-- TODO duplication shift and substDB
 
 shift :: Int -> Term -> Term
 shift k = helper 0
@@ -28,7 +30,7 @@ shift k = helper 0
     helper _ Tru = Tru
     helper _ Fls = Fls
     helper _ Unit = Unit
-    helper _ (Record {}) = error "Record"
+    helper m (Record ls) = Record $ (helper m <$>) <$> ls
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -49,7 +51,7 @@ substDB j n = helper
     helper Tru = Tru
     helper Fls = Fls
     helper Unit = Unit
-    helper (Record {}) = error "record"
+    helper (Record ls) =  Record $ (helper <$>) <$> ls
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -58,11 +60,14 @@ betaRuleDB ((Lmb _ _ t) :@: s) =
     in shift (-1) t'
 betaRuleDB t = error $ "beta rule failed in " ++ show t
 
+-- Rework : isValue and Nothing seems to do one jobe two times. duplication
 isValue :: Term -> Bool
-isValue Lmb {} = True
-isValue Tru       = True
-isValue Fls       = True
-isValue _         = False
+isValue Lmb {}      = True
+isValue Tru         = True
+isValue Fls         = True
+isValue (Record ls) = all (isValue . snd) ls
+isValue Unit        = True
+isValue _           = False
 
 callByValueStep :: Term -> Maybe Term
 callByValueStep (If Tru ifTrue _) = return ifTrue
@@ -78,13 +83,22 @@ callByValueStep (t1 :@: t2) | isValue t1 && not (isValue t2) = do
     return $ t1 :@: t2'
 callByValueStep r@(Lmb {} :@: value) | isValue value =
     return $ betaRuleDB r
+callByValueStep (Record ls) =
+    let run (hd@(lb, term) : tl)
+            | isValue term = (hd:) <$> run tl
+            | otherwise    =  do
+                term' <- callByValueStep term
+
+                return $ (lb, term') : tl
+        run []             =  Nothing
+    in Record <$> run ls
 callByValueStep (Idx _) = fail "Idx"
 callByValueStep (Lmb {}) = fail "Lmb"
 callByValueStep Tru = fail "Tru"
 callByValueStep Fls = fail "Fls"
 callByValueStep Unit = fail "Unit"
 callByValueStep (_ :@: _) = fail "App"
-callByValueStep (Record {}) = error "record"
+
 
 steps :: (a -> Maybe a) -> a -> [a]
 steps f i = helper (Just i)

@@ -65,4 +65,7 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
     helper T.Tru = return E.Tru
     helper T.Fls = return E.Fls
     helper T.Unit = return E.Unit
-    helper T.Record {} = undefined 
+    helper (T.Record ls) = do
+        ls' <- mapM (mapM helper) ls
+
+        return $ E.Record ls'

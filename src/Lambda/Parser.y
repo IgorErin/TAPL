@@ -66,7 +66,7 @@ Expr
     | '(' Expr ')'                            { $2 }
     | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
     | "let" ident '=' Expr "in" Expr          { LE.let_ $2 $4 $6 }
-    |  Record                                 { LE.record $1 }
+    |  RecordExpr                             { LE.record $1 }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }
@@ -76,16 +76,29 @@ Params :: { NonEmpty (LE.Binder, TT.Type) }
 
 Binder :: { LE.Binder }
 Binder
-    : ident                                   { Just $1 }
-    | '_'                                     { Nothing }
+    : ident                                         { Just $1 }
+    | '_'                                           { Nothing }
 
 BinderWithType :: { (LE.Binder, TT.Type) }
-BinderWithType : '(' Binder ':' TypeExpr ')'  { ($2, $4) }
+BinderWithType : '(' Binder ':' TypeExpr ')'        { ($2, $4) }
 
-Record : '{' sep (RecordInit, ',') '}'        { $2 }
+--------------------------- Record -----------------------------
+
+RecordExpr :: { [(LI.Label, LE.Expr)]}
+RecordExpr: RecordOf (RecordInit)                   { $1 }
+
+RecordType :: { [(LI.Label, TT.Type)] }
+RecordType : RecordOf (RecordFiledWithType)         { $1 }
+
+RecordOf (f) : '{' sep (f, ',') '}'                 { $2 }
+
+-------------------------- Field -------------------------------
+
+RecordFiledWithType :: { (LI.Label, TT.Type) }
+RecordFiledWithType : ident ':' TypeExpr            { ($1, $3) }
 
 RecordInit :: { (LI.Label, LE.Expr) }
-RecordInit : ident '=' Expr                      { ($1, $3) }
+RecordInit : ident '=' Expr                         { ($1, $3) }
 
 --------------------------- Types ------------------------------
 
@@ -94,11 +107,20 @@ TypeExpr
     : SimplType                               { $1 }
     | TypeExpr "->" SimplType                 { TT.arrow $1 $3 }
     | '(' TypeExpr ')'                        { $2 }
+    | RecordType                              { TT.record $1 }
 
 SimplType :: { TT.Type }
 SimplType
     : "Bool"                                  { TT.bool }
     | "Unit"                                  { TT.unit }
+
+----------------------------- specific helpers ----------
+
+Name :: { LI.Name }
+Name : ident                                { $1 }
+
+Label :: { LI.Label }
+Label : ident                                { $1 }
 
 ----------------------------- New helpers -----------------
 
