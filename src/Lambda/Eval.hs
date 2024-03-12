@@ -40,6 +40,7 @@ shift k = helper 0
         let left' = helper m left
             right' = helper m right
         in BinOp left' op right'
+    helper m (Fix term) = Fix $ helper m term
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -67,6 +68,7 @@ substDB j n = helper
         let left' = helper left
             right' = helper right
         in BinOp left' op right'
+    helper (Fix term) = Fix $ helper term
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -141,11 +143,14 @@ callByValueStep (BinOp left op right)
     | not $ isValue left = do
         left' <- callByValueStep left
         return $ BinOp left' op right
-
     | isValue left && not (isValue right) = do
         right' <- callByValueStep right
         return $ BinOp left op right'
     | otherwise = return $ runBinOp left op right
+-- Fix
+callByValueStep point@(Fix term)
+    | not $ isValue term = Fix <$> callByValueStep term
+    | otherwise          = return $ betaRuleDB $ term :@: point
 -- Stack
 callByValueStep (Idx _) = fail "Idx"
 callByValueStep (Lmb {}) = fail "Lmb"

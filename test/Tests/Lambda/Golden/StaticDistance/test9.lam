@@ -1,1 +1,1 @@
-Right (Lmb (Just "s") (Bool :-> Bool) (Lmb (Just "z") Bool (Idx 1 :@: (Idx 1 :@: Idx 0))))
+Right (Lmb (Just "fac") (Int :-> Int) (Idx 0 :@: Int 4) :@: Fix (Lmb (Just "fac") (Int :-> Int) (Lmb (Just "x") Int (If (BinOp (Idx 0) Eq (Int 1)) (Int 1) (BinOp (Idx 0) Mul (Idx 1 :@: BinOp (Idx 0) Sub (Int 1)))))))

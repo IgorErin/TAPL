@@ -1,1 +1,1 @@
-Lam (Just "s") (Bool :-> Bool) (Lam (Just "z") Bool (Var "s" :@ (Var "s" :@ Var "z")))
+Let "fac" (Fix (Lam (Just "fac") (Int :-> Int) (Lam (Just "x") Int (If (BinOp (Var "x") Eq (Int 1)) (Int 1) (BinOp (Var "x") Mul (Var "fac" :@ BinOp (Var "x") Sub (Int 1))))))) (Var "fac" :@ Int 4)

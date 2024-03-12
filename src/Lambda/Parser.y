@@ -46,6 +46,7 @@ import Data.List.NonEmpty hiding (reverse)
 
    "as"     { L.TAs }
 
+   "letrec" { L.TLetrec }
    "let"    { L.TLet }
    "in"     { L.TIn }
    '='      { L.TEq }
@@ -69,20 +70,21 @@ Program : Expr                                { $1 }
 
 Expr :: { LE.Expr }
 Expr
-    : "fun" NEParams "->" Expr                  { LE.lams $2 $4 }
-    | "if" Expr "then" Expr "else" Expr       { LE.if_ $2 $4 $6}
-    | "true"                                  { LE.true }
-    | "false"                                 { LE.false }
-    | "()"                                    { LE.unit }
-    | Expr Expr                               { LE.app $1 $2 }
-    | Var                                     { $1 }
-    | '(' Expr ')'                            { $2 }
-    | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
-    | "let" ident Params '=' Expr "in" Expr   { LE.let_ $2 $3 $5 $7 }
-    | RecordExpr                              { LE.record $1 }
-    | Expr '.' Label                          { LE.get $1 $3 }
-    | int                                     { LE.int $1 }
-    | '(' BinOp Expr Expr ')'                 { LE.binop $3 $2 $4 }
+    : "fun" NEParams "->" Expr                              { LE.lams $2 $4 }
+    | "if" Expr "then" Expr "else" Expr                     { LE.if_ $2 $4 $6}
+    | "true"                                                { LE.true }
+    | "false"                                               { LE.false }
+    | "()"                                                  { LE.unit }
+    | Expr Expr                                             { LE.app $1 $2 }
+    | Var                                                   { $1 }
+    | '(' Expr ')'                                          { $2 }
+    | Expr "as" TypeExpr                                    { LE.ascription $1 $3 }
+    | "let" ident Params '=' Expr "in" Expr                 { LE.let_ $2 $3 $5 $7 }
+    | "letrec" ident Params ':' TypeExpr '=' Expr "in" Expr { LE.letrec $2 $3 $5 $7 $9 }
+    | RecordExpr                                            { LE.record $1 }
+    | Expr '.' Label                                        { LE.get $1 $3 }
+    | int                                                   { LE.int $1 }
+    | '(' BinOp Expr Expr ')'                               { LE.binop $3 $2 $4 }
 
 BinOp :: { Op.BinOp }
 BinOp

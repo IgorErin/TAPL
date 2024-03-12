@@ -78,3 +78,4 @@ run e = runReaderT (helper e) []
         right' <- helper right
 
         return $ T.BinOp left' op right'
+    helper (E.Fix expr) = T.Fix <$> helper expr

@@ -146,4 +146,13 @@ run t = runReaderT (typeOf t) []
         right' <- typeOf right
 
         checkBinOpType left' op right'
+    typeOf (Te.Fix term) = do
+        termT <- typeOf term
+
+        (base, result) <- splitArrow termT "Fix splittig"
+
+        checkEqType base result
+            $ "Fix types must be equal: "+||base||+" <> "+||result||+""
+
+        return result
 

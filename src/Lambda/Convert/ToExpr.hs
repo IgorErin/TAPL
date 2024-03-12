@@ -79,3 +79,4 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
         right' <- helper right
 
         return $ E.BinOp left' op right'
+    helper (T.Fix term) = E.Fix <$> helper term 

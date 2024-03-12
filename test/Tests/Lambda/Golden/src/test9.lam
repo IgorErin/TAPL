@@ -1,1 +1,5 @@
-fun (s: Bool -> Bool) (z: Bool) -> s (s z)
+letrec fac (x: Int) : Int =
+    if (== x 1)
+    then 1
+    else (* x (fac (- x 1)))
+in fac 4

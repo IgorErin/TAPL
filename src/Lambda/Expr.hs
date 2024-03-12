@@ -4,7 +4,7 @@ module Lambda.Expr  (
     if_, false, true,
     unit,
     ascription,
-    let_,
+    let_, letrec,
     record, get,
     int,
     binop
@@ -12,7 +12,7 @@ module Lambda.Expr  (
 
 import Data.List.NonEmpty ( NonEmpty(..) )
 
-import Lambda.Types (Type)
+import Lambda.Types (Type, arrow)
 import Lambda.Ident (Name, Label)
 import Lambda.Oper (BinOp)
 
@@ -36,6 +36,7 @@ data Expr =
     | Let Name Expr Expr
     | Record Record
     | Get Expr Label
+    | Fix Expr
     deriving (Eq, Show)
 
 true :: Expr
@@ -57,22 +58,13 @@ lam :: Binder -> Type -> Expr -> Expr
 lam = Lam
 
 lams :: NonEmpty (Binder, Type) -> Expr -> Expr
-lams ((ident, ty) :| tl) expr = lam ident ty $ helper tl
-    where
-    helper [] = expr
-    helper ((id', ty') : tl') = lam id' ty' $ helper tl'
+lams ((ident, ty) :| tl) expr = lam ident ty $ mkLam expr tl
 
 unit :: Expr
 unit = Unit
 
 ascription :: Expr -> Type -> Expr
 ascription e t = Lam (Just "x") t (Var "x") :@ e
-
-let_ :: Name -> [(Binder, Type)] -> Expr -> Expr -> Expr
-let_ name params expr body = Let name (mkLam params) body
-    where
-    mkLam ((bin, ty) : tl) = Lam bin ty $ mkLam tl
-    mkLam [] = expr
 
 record :: [(Name, Expr)] -> Expr
 record = Record
@@ -85,4 +77,21 @@ int = Int
 
 binop :: Expr -> BinOp -> Expr -> Expr
 binop = BinOp
+
+--------------------------- Let ----------------------------
+
+mkLam :: Expr -> [(Binder, Type)] -> Expr
+mkLam expr ((bin, ty) : tl) = Lam bin ty $ mkLam expr tl
+mkLam expr [] = expr
+
+let_ :: Name -> [(Binder, Type)] -> Expr -> Expr -> Expr
+let_ name params expr = Let name (mkLam expr params)
+
+letrec :: Name -> [(Binder, Type)] -> Type -> Expr -> Expr -> Expr
+letrec name params resultType expr body =
+    let argTypes = snd <$> params
+        funType = foldr arrow resultType argTypes
+        fix = Fix (Lam (Just name) funType (mkLam expr params))
+    in Let name fix body
+
 

@@ -23,4 +23,5 @@ data Term =
     | Lmb Info Type Term
     | Record Record
     | Get Term Label
+    | Fix Term
     deriving (Eq, Show)

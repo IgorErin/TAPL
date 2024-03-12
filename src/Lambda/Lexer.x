@@ -53,6 +53,7 @@ tokens :-
 
   "as"                  { \_ -> TAs }
 
+  "letrec"              { \_ -> TLetrec }
   "let"                 { \_ -> TLet}
   "in"                  { \_ -> TIn }
   "="                   { \_ -> TEq }
@@ -86,6 +87,7 @@ data Token
   -- ascription
   | TAs
   -- let in
+  | TLetrec
   | TLet
   | TIn
   | TEq
