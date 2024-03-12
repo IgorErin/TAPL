@@ -74,3 +74,8 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
 
         return $ E.Get term' lb
     helper (T.Int n) = return $ E.Int n
+    helper (T.BinOp left op right) = do
+        left' <- helper left
+        right' <- helper right
+
+        return $ E.BinOp left' op right'

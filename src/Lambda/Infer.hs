@@ -3,6 +3,7 @@ module Lambda.Infer (run, Info, Result) where
 import Lambda.Term    as Te (Term(..), Field)
 import Lambda.Types   as Ty (Type(..), Field, Record)
 import Lambda.Ident   as I  (Index, Label)
+import Lambda.Oper    as Op (BinOp(..))
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
@@ -45,7 +46,32 @@ checkGetType ty@(Ty.Record ls) lb = case find ((== lb) . fst) ls of
         Nothing -> throwError $ "Attemt to get "+||lb||+"on type:"+||ty||+". No such field."
 checkGetType ty lb = throwError $ "Attemt to get "+||lb||+"on type:"+||ty||+"."
 
+checkBinOpType :: Ty.Type -> BinOp -> Ty.Type -> Infer Ty.Type
+checkBinOpType Ty.Int op Ty.Int = return $ forInt op
+    where
+    forInt :: BinOp -> Type
+    forInt Add = Ty.Int
+    forInt Sub = Ty.Int
+    forInt Mul = Ty.Int
+    forInt Le  = Ty.Bool
+    forInt Lt = Ty.Bool
+    forInt Ge = Ty.Bool
+    forInt Gt = Ty.Bool
+    forInt Eq  = Ty.Bool
+    forInt NEq = Ty.Bool
+checkBinOpType leftt op rightt | isGeneric op = do
+    checkEqType leftt rightt "types of bin op must be equal"
+
+    return Bool
+    where
+    isGeneric :: BinOp -> Bool
+    isGeneric Eq  = True
+    isGeneric NEq = True
+    isGeneric _   = False
+checkBinOpType _ _ _ = error "unmatched case in binop"
+
 ------------------ Message helpers -----------------
+
 
 mkBranchInfo :: Type -> Type -> Info
 mkBranchInfo = mkTypeEqInfo $ Just "In If branchase"
@@ -115,4 +141,9 @@ run t = runReaderT (typeOf t) []
 
         checkGetType termT lb
     typeOf (Te.Int _) = return Ty.Int
+    typeOf (Te.BinOp left op right) = do
+        left' <- typeOf left
+        right' <- typeOf right
+
+        checkBinOpType left' op right'
 

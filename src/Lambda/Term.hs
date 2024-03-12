@@ -2,6 +2,7 @@ module Lambda.Term (Term(..), Field, Record) where
 
 import Lambda.Types(Type)
 import Lambda.Ident (Index, Label)
+import Lambda.Oper (BinOp)
 
 type Info = Maybe String
 
@@ -16,6 +17,7 @@ data Term =
     | Fls
     | Unit
     | Int Int
+    | BinOp Term BinOp Term
     | If Term Term Term
     | Term :@: Term
     | Lmb Info Type Term

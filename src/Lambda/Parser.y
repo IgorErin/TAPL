@@ -5,6 +5,7 @@ import qualified Lambda.Lexer as L
 import qualified Lambda.Expr as LE
 import qualified Lambda.Types as TT
 import qualified Lambda.Ident as LI
+import qualified Lambda.Oper as Op
 
 import Data.List.NonEmpty hiding (reverse)
 }
@@ -34,6 +35,7 @@ import Data.List.NonEmpty hiding (reverse)
 
    "Bool"   { L.TBoolType }
    "Unit"   { L.TUnitType }
+   "Int"    { L.TIntType }
 
    '_'      { L.TWildCard }
 
@@ -48,6 +50,16 @@ import Data.List.NonEmpty hiding (reverse)
    "in"     { L.TIn }
    '='      { L.TEq }
    int      { L.TInt $$ }
+
+   "+"       { L.TAdd }
+   "-"       { L.TSub }
+   "*"       { L.TMul }
+   ">"       { L.TGt }
+   ">="      { L.TGe }
+   "<"       { L.TLt }
+   "<="      { L.TLe }
+   "=="      { L.TEqEq }
+   "<>"      { L.TLtGt }
 
    ident    { L.TIdent $$ }
 %%
@@ -70,6 +82,19 @@ Expr
     | RecordExpr                              { LE.record $1 }
     | Expr '.' Label                          { LE.get $1 $3 }
     | int                                     { LE.int $1 }
+    | '(' BinOp Expr Expr ')'                 { LE.binop $3 $2 $4 }
+
+BinOp :: { Op.BinOp }
+BinOp
+    : "+"                                      { Op.add }
+    | "-"                                      { Op.sub }
+    | "*"                                      { Op.mul }
+    | ">"                                      { Op.gt }
+    | ">="                                     { Op.ge }
+    | "<"                                      { Op.lt }
+    | "<="                                     { Op.le }
+    | "=="                                     { Op.eq }
+    | "<>"                                     { Op.neq }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }
@@ -116,6 +141,7 @@ SimplType :: { TT.Type }
 SimplType
     : "Bool"                                  { TT.bool }
     | "Unit"                                  { TT.unit }
+    | "Int"                                   { TT.int }
 
 ----------------------------- specific helpers ----------
 

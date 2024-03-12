@@ -6,6 +6,7 @@ module Lambda.Eval (
 
 import Lambda.Term (Term(..))
 import Lambda.Ident (Index)
+import Lambda.Oper (BinOp(..))
 
 import Data.List (find)
 
@@ -35,6 +36,10 @@ shift k = helper 0
     helper m (Record ls) = Record $ (helper m <$>) <$> ls
     helper m (Get t lb)  = Get (helper m t) lb
     helper _ n@(Int _)    = n
+    helper m (BinOp left op right) =
+        let left' = helper m left
+            right' = helper m right
+        in BinOp left' op right'
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -58,6 +63,10 @@ substDB j n = helper
     helper (Record ls) =  Record $ (helper <$>) <$> ls
     helper (Get t lb) = Get (helper t) lb
     helper t@(Int _) = t
+    helper (BinOp left op right) =
+        let left' = helper left
+            right' = helper right
+        in BinOp left' op right'
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -75,6 +84,22 @@ isValue (Record ls) = all (isValue . snd) ls
 isValue Unit        = True
 isValue (Int _)     = True
 isValue _           = False
+
+termOfBool :: Bool -> Term
+termOfBool True = Tru
+termOfBool False = Fls
+
+runBinOp :: Term -> BinOp -> Term -> Term
+runBinOp left Eq right = termOfBool $ (left == right)
+runBinOp left NEq right = termOfBool $ (left /= right)
+runBinOp (Int left) Add (Int right) = Int $ left + right
+runBinOp (Int left) Sub (Int right) = Int $ left - right
+runBinOp (Int left) Mul (Int right) = Int $ left * right
+runBinOp (Int left) Lt (Int right) = termOfBool $ (left < right)
+runBinOp (Int left) Le (Int right) = termOfBool $ (left <= right)
+runBinOp (Int left) Gt (Int right) = termOfBool $ (left > right)
+runBinOp (Int left) Ge (Int right) = termOfBool $ (left >= right)
+runBinOp _ _ _ = error "unexpected argument in binOp"
 
 callByValueStep :: Term -> Maybe Term
 callByValueStep (If Tru ifTrue _) = return ifTrue
@@ -111,6 +136,16 @@ callByValueStep (Get t lb) | not $ isValue t = do
     return $ Get t' lb
 callByValueStep (Get t lb) =
     error $ "Attemt to get" ++ show lb ++ "on" ++ show t
+-- BinOp
+callByValueStep (BinOp left op right)
+    | not $ isValue left = do
+        left' <- callByValueStep left
+        return $ BinOp left' op right
+
+    | isValue left && not (isValue right) = do
+        right' <- callByValueStep right
+        return $ BinOp left op right'
+    | otherwise = return $ runBinOp left op right
 -- Stack
 callByValueStep (Idx _) = fail "Idx"
 callByValueStep (Lmb {}) = fail "Lmb"

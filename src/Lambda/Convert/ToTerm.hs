@@ -73,3 +73,8 @@ run e = runReaderT (helper e) []
 
         return $ T.Get term lb
     helper (E.Int n) = return $ T.Int n
+    helper (E.BinOp left op right) = do
+        left' <- helper left
+        right' <- helper right
+
+        return $ T.BinOp left' op right'

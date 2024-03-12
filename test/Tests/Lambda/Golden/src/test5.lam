@@ -1,1 +1,1 @@
-(fun (z: Bool -> Bool) (x: (Bool -> Bool) -> Bool) -> x z)
+if (< (+ 0 1) (+ 1 1)) then 3 else 4

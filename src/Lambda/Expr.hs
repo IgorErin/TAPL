@@ -6,13 +6,15 @@ module Lambda.Expr  (
     ascription,
     let_,
     record, get,
-    int
+    int,
+    binop
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
 
 import Lambda.Types (Type)
 import Lambda.Ident (Name, Label)
+import Lambda.Oper (BinOp)
 
 type Binder = Maybe Name
 
@@ -27,6 +29,7 @@ data Expr =
     | Fls
     | Unit
     | Int Int
+    | BinOp Expr BinOp Expr
     | If Expr Expr Expr
     | Expr :@ Expr
     | Lam Binder Type Expr
@@ -76,3 +79,7 @@ get = Get
 
 int :: Int -> Expr
 int = Int
+
+binop :: Expr -> BinOp -> Expr -> Expr
+binop = BinOp
+

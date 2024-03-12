@@ -36,6 +36,7 @@ library
       Lambda.Ident
       Lambda.Infer
       Lambda.Lexer
+      Lambda.Oper
       Lambda.Parser
       Lambda.Term
       Lambda.Types

@@ -13,9 +13,19 @@ $backSlash = \
 
 tokens :-
   $white+               ;
-  @number               { toInt }
+  $digit+              { toInt }
 
   "fun"                 { \_ -> TLambda  }
+
+  "+"                   { \_ -> TAdd }
+  "-"                   { \_ -> TSub }
+  "*"                   { \_ -> TMul }
+  ">"                   { \_ -> TGt }
+  ">="                  { \_ -> TGe }
+  "<"                   { \_ -> TLt }
+  "<="                  { \_ -> TLe }
+  "=="                  { \_ -> TEqEq }
+  "<>"                  { \_ -> TLtGt }
 
   "->"                  { \_ -> TArrow   }
 
@@ -35,6 +45,7 @@ tokens :-
 
   "Bool"                { \_ -> TBoolType }
   "Unit"                { \_ -> TUnitType }
+  "Int"                 { \_ -> TIntType }
 
   "_"                   { \_ -> TWildCard }
 
@@ -81,11 +92,22 @@ data Token
   -- values
   | TTrue
   | TFalse
-  | TInt Int 
+  | TInt Int
   | TUnit
   -- builtin types
   | TBoolType
   | TUnitType
+  | TIntType
+
+  | TAdd
+  | TSub
+  | TMul
+  | TGt
+  | TGe
+  | TLt
+  | TLe
+  | TEqEq
+  | TLtGt
 
   | TWildCard
 
