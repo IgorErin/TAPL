@@ -1,1 +1,1 @@
-Right (Lmb (Just "z") Bool (Lmb (Just "z") Bool (Idx 0 :@: Idx 0)))
+Right (Int 4)

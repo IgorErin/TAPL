@@ -1,1 +1,5 @@
-Lmb (Just "z") Bool (Lmb (Just "z") Bool (Idx 0 :@: Idx 0))
+Lmb (Just "add") (Int :-> (Int :-> Int)) ((Idx 0 :@: Int 1) :@: Int 3) :@: Lmb (Just "x") Int (Lmb (Just "y") Int (BinOp (Idx 1) Add (Idx 0)))
+(Lmb (Just "x") Int (Lmb (Just "y") Int (BinOp (Idx 1) Add (Idx 0))) :@: Int 1) :@: Int 3
+Lmb (Just "y") Int (BinOp (Int 1) Add (Idx 0)) :@: Int 3
+BinOp (Int 1) Add (Int 3)
+Int 4

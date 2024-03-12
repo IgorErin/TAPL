@@ -1,1 +1,1 @@
-Lam (Just "s") (Bool :-> Bool) (Lam (Just "z") Bool (Var "s" :@ Var "z"))
+Let "x" (Record [("fst",Int 1),("snd",Int 2)]) (If (BinOp (Get (Var "x") "fst") Lt (Get (Var "x") "snd")) (Int 0) (Int 1))

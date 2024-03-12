@@ -1,1 +1,1 @@
-(fun (z: Bool) -> (fun (x: Bool) -> z) (fun (y: Bool) -> z))
+let x (x: Int) = x in ()

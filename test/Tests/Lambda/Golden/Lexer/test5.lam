@@ -1,1 +1,1 @@
-[TLParent,TLambda,TLParent,TIdent "z",TColumn,TBoolType,TArrow,TBoolType,TRParent,TLParent,TIdent "x",TColumn,TLParent,TBoolType,TArrow,TBoolType,TRParent,TArrow,TBoolType,TRParent,TArrow,TIdent "x",TIdent "z",TRParent]
+[TIf,TLParent,TLt,TLParent,TAdd,TInt 0,TInt 1,TRParent,TLParent,TAdd,TInt 1,TInt 1,TRParent,TRParent,TThen,TInt 3,TElse,TInt 4]

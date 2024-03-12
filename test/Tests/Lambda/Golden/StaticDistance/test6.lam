@@ -1,1 +1,1 @@
-Right (Lmb (Just "s") (Bool :-> Bool) (Lmb (Just "z") Bool (Idx 1 :@: Idx 0)))
+Right (Lmb (Just "x") (Record [("fst",Int),("snd",Int)]) (If (BinOp (Get (Idx 0) "fst") Lt (Get (Idx 0) "snd")) (Int 0) (Int 1)) :@: Record [("fst",Int 1),("snd",Int 2)])

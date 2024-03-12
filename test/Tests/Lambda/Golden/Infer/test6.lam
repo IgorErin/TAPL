@@ -1,1 +1,1 @@
-Right ((Bool :-> Bool) :-> (Bool :-> Bool))
+Right Int

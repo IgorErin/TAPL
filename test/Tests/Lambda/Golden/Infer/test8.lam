@@ -1,1 +1,1 @@
-Left "Expected function type like: Bool -> _. Actual: Bool"
+Right Int

@@ -1,1 +1,1 @@
-Right (Lam (Just "z") Bool (Lam (Just "x") Bool (Var "z") :@ Lam (Just "y") Bool (Var "z")))
+Right (Lam (Just "x") (Int :-> Int) Unit :@ Lam (Just "x") Int (Var "x"))

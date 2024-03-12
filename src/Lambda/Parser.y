@@ -69,7 +69,7 @@ Program : Expr                                { $1 }
 
 Expr :: { LE.Expr }
 Expr
-    : "fun" Params "->" Expr                  { LE.lams $2 $4 }
+    : "fun" NEParams "->" Expr                  { LE.lams $2 $4 }
     | "if" Expr "then" Expr "else" Expr       { LE.if_ $2 $4 $6}
     | "true"                                  { LE.true }
     | "false"                                 { LE.false }
@@ -78,7 +78,7 @@ Expr
     | Var                                     { $1 }
     | '(' Expr ')'                            { $2 }
     | Expr "as" TypeExpr                      { LE.ascription $1 $3 }
-    | "let" ident '=' Expr "in" Expr          { LE.let_ $2 $4 $6 }
+    | "let" ident Params '=' Expr "in" Expr   { LE.let_ $2 $3 $5 $7 }
     | RecordExpr                              { LE.record $1 }
     | Expr '.' Label                          { LE.get $1 $3 }
     | int                                     { LE.int $1 }
@@ -99,8 +99,11 @@ BinOp
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }
 
-Params :: { NonEmpty (LE.Binder, TT.Type) }
-    : BinderWithType list(BinderWithType)     { $1 :| $2 }
+NEParams :: { NonEmpty (LE.Binder, TT.Type) }
+    : BinderWithType Params                         { $1 :| $2 }
+
+Params :: { [(LE.Binder, TT.Type)] }
+Params : list(BinderWithType)                       { $1 }
 
 Binder :: { LE.Binder }
 Binder

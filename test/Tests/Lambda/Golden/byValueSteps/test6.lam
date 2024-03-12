@@ -1,1 +1,6 @@
-Lmb (Just "s") (Bool :-> Bool) (Lmb (Just "z") Bool (Idx 1 :@: Idx 0))
+Lmb (Just "x") (Record [("fst",Int),("snd",Int)]) (If (BinOp (Get (Idx 0) "fst") Lt (Get (Idx 0) "snd")) (Int 0) (Int 1)) :@: Record [("fst",Int 1),("snd",Int 2)]
+If (BinOp (Get (Record [("fst",Int 1),("snd",Int 2)]) "fst") Lt (Get (Record [("fst",Int 1),("snd",Int 2)]) "snd")) (Int 0) (Int 1)
+If (BinOp (Int 1) Lt (Get (Record [("fst",Int 1),("snd",Int 2)]) "snd")) (Int 0) (Int 1)
+If (BinOp (Int 1) Lt (Int 2)) (Int 0) (Int 1)
+If Tru (Int 0) (Int 1)
+Int 0

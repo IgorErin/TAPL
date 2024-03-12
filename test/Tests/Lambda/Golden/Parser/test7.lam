@@ -1,1 +1,1 @@
-Lam (Just "z") Bool (Lam (Just "x") Bool (Var "z") :@ Lam (Just "y") Bool (Var "z"))
+Let "x" (Lam (Just "x") Int (Var "x")) Unit

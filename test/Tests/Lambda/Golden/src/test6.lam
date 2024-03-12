@@ -1,1 +1,2 @@
-fun (s: Bool -> Bool) (z: Bool) -> s z
+let x = { fst = 1, snd = 2 } in
+if (< x.fst x.snd) then 0 else 1

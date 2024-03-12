@@ -68,8 +68,11 @@ unit = Unit
 ascription :: Expr -> Type -> Expr
 ascription e t = Lam (Just "x") t (Var "x") :@ e
 
-let_ :: Name -> Expr -> Expr -> Expr
-let_ = Let
+let_ :: Name -> [(Binder, Type)] -> Expr -> Expr -> Expr
+let_ name params expr body = Let name (mkLam params) body
+    where
+    mkLam ((bin, ty) : tl) = Lam bin ty $ mkLam tl
+    mkLam [] = expr
 
 record :: [(Name, Expr)] -> Expr
 record = Record

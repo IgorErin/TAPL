@@ -1,1 +1,1 @@
-Right (Lam (Just "z") Bool (Lam (Just "z0") Bool (Var "z0" :@ Var "z0")))
+Right (Lam (Just "add") (Int :-> (Int :-> Int)) ((Var "add" :@ Int 1) :@ Int 3) :@ Lam (Just "x") Int (Lam (Just "y") Int (BinOp (Var "x") Add (Var "y"))))

@@ -1,1 +1,1 @@
-Right (Lmb (Just "z") (Bool :-> Bool) (Lmb (Just "x") ((Bool :-> Bool) :-> Bool) (Idx 0 :@: Idx 1)))
+Right (Int 3)

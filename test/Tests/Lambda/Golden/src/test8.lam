@@ -1,1 +1,1 @@
-fun (z: Bool) (z: Bool) -> z z
+let add (x: Int) (y: Int) = (+ x y) in (add 1) 3
