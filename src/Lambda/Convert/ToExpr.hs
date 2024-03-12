@@ -73,3 +73,4 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
         term' <- helper term
 
         return $ E.Get term' lb
+    helper (T.Int n) = return $ E.Int n

@@ -2,7 +2,7 @@ module Lambda.Types (
     Type(..),
     Field,
     Record,
-    bool, unit,
+    bool, unit, int,
     arrow,
     record
 ) where
@@ -17,6 +17,7 @@ type Record = [Field]
 data Type =
     Bool
     | Unit
+    | Int
     | Type :-> Type
     | Record Record
     deriving (Show, Eq)
@@ -26,6 +27,9 @@ bool = Bool
 
 unit :: Type
 unit = Unit
+
+int :: Type
+int = Int
 
 arrow :: Type -> Type -> Type
 arrow f s = f :-> s

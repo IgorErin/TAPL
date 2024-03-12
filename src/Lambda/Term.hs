@@ -15,9 +15,10 @@ data Term =
     | Tru
     | Fls
     | Unit
+    | Int Int
     | If Term Term Term
     | Term :@: Term
     | Lmb Info Type Term
     | Record Record
-    | Get Term Label 
+    | Get Term Label
     deriving (Eq, Show)

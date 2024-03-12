@@ -13,6 +13,7 @@ $backSlash = \
 
 tokens :-
   $white+               ;
+  @number               { toInt }
 
   "fun"                 { \_ -> TLambda  }
 
@@ -51,6 +52,7 @@ tokens :-
   @ident                { TIdent }
 
 {
+toInt = TInt . read
 
 data Token
   =
@@ -79,6 +81,7 @@ data Token
   -- values
   | TTrue
   | TFalse
+  | TInt Int 
   | TUnit
   -- builtin types
   | TBoolType

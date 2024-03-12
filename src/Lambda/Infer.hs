@@ -6,6 +6,7 @@ import Lambda.Ident   as I  (Index, Label)
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
+    ( ReaderT(runReaderT), asks, MonadReader(local) )
 
 import Data.List (find)
 
@@ -113,4 +114,5 @@ run t = runReaderT (typeOf t) []
         termT <- typeOf term
 
         checkGetType termT lb
+    typeOf (Te.Int _) = return Ty.Int
 

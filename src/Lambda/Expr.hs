@@ -5,7 +5,8 @@ module Lambda.Expr  (
     unit,
     ascription,
     let_,
-    record, get
+    record, get,
+    int
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
@@ -25,6 +26,7 @@ data Expr =
     | Tru
     | Fls
     | Unit
+    | Int Int
     | If Expr Expr Expr
     | Expr :@ Expr
     | Lam Binder Type Expr
@@ -71,3 +73,6 @@ record = Record
 
 get :: Expr -> Label -> Expr
 get = Get
+
+int :: Int -> Expr
+int = Int

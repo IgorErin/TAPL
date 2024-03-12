@@ -47,6 +47,7 @@ import Data.List.NonEmpty hiding (reverse)
    "let"    { L.TLet }
    "in"     { L.TIn }
    '='      { L.TEq }
+   int      { L.TInt $$ }
 
    ident    { L.TIdent $$ }
 %%
@@ -68,6 +69,7 @@ Expr
     | "let" ident '=' Expr "in" Expr          { LE.let_ $2 $4 $6 }
     | RecordExpr                              { LE.record $1 }
     | Expr '.' Label                          { LE.get $1 $3 }
+    | int                                     { LE.int $1 }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }

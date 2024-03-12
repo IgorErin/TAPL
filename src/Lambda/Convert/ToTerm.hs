@@ -72,3 +72,4 @@ run e = runReaderT (helper e) []
         term <- helper expr
 
         return $ T.Get term lb
+    helper (E.Int n) = return $ T.Int n

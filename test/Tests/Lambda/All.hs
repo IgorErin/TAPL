@@ -7,7 +7,6 @@ import qualified Lambda.Convert.ToTerm    as ToTerm (run, Result)
 import qualified Lambda.Convert.ToExpr    as ToExpr (run)
 
 import qualified Lambda.Expr        as LE (Expr)
-import qualified Lambda.Term        as LT (Term)
 
 import qualified Lambda.Lexer       as LL (alexScanTokens, Token)
 import qualified Lambda.Parser      as LR (run)

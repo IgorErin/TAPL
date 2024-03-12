@@ -34,6 +34,7 @@ shift k = helper 0
     helper _ Unit = Unit
     helper m (Record ls) = Record $ (helper m <$>) <$> ls
     helper m (Get t lb)  = Get (helper m t) lb
+    helper _ n@(Int _)    = n
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -56,6 +57,7 @@ substDB j n = helper
     helper Unit = Unit
     helper (Record ls) =  Record $ (helper <$>) <$> ls
     helper (Get t lb) = Get (helper t) lb
+    helper t@(Int _) = t
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -71,6 +73,7 @@ isValue Tru         = True
 isValue Fls         = True
 isValue (Record ls) = all (isValue . snd) ls
 isValue Unit        = True
+isValue (Int _)     = True
 isValue _           = False
 
 callByValueStep :: Term -> Maybe Term
@@ -115,6 +118,7 @@ callByValueStep Tru = fail "Tru"
 callByValueStep Fls = fail "Fls"
 callByValueStep Unit = fail "Unit"
 callByValueStep (_ :@: _) = fail "App"
+callByValueStep (Int _) = fail "Int"
 
 
 steps :: (a -> Maybe a) -> a -> [a]
