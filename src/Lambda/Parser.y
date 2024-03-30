@@ -23,6 +23,9 @@ import Data.List.NonEmpty hiding (reverse)
    '{'      { L.TLCurlyBrace }
    '}'      { L.TRCurlyBrace }
 
+   '['      { L.TLSquare }
+   ']'      { L.TRSquare }
+
    "->"     { L.TArrow }
 
    "true"   { L.TTrue }
@@ -82,6 +85,7 @@ Expr
     | "let" ident Params '=' Expr "in" Expr                 { LE.let_ $2 $3 $5 $7 }
     | "letrec" ident Params ':' TypeExpr '=' Expr "in" Expr { LE.letrec $2 $3 $5 $7 $9 }
     | RecordExpr                                            { LE.record $1 }
+    | VariantExpr                                           { LE.variant $1 }
     | Expr '.' Label                                        { LE.get $1 $3 }
     | int                                                   { LE.int $1 }
     | '(' BinOp Expr Expr ')'                               { LE.binop $3 $2 $4 }
@@ -115,6 +119,16 @@ Binder
 BinderWithType :: { (LE.Binder, TT.Type) }
 BinderWithType : '(' Binder ':' TypeExpr ')'        { ($2, $4) }
 
+--------------------------- Variant ---------------------------
+
+VariantExpr :: { (LI.Label, LE.Expr) }
+VariantExpr : '[' Label '=' Expr ']'                    { ($2, $4) }
+
+VariantType :: { [(LI.Label, TT.Type)] }
+VariantType : VariantOf (RecordFiledWithType)        { $1 }
+
+VariantOf (f) : '[' sep (f, ',') ']'                 { $2 }
+
 --------------------------- Record -----------------------------
 
 RecordExpr :: { [(LI.Label, LE.Expr)]}
@@ -141,6 +155,7 @@ TypeExpr
     | TypeExpr "->" SimplType                 { TT.arrow $1 $3 }
     | '(' TypeExpr ')'                        { $2 }
     | RecordType                              { TT.record $1 }
+    | VariantType                             { TT.variant $1 }
 
 SimplType :: { TT.Type }
 SimplType

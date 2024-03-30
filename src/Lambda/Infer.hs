@@ -108,6 +108,14 @@ run t = runReaderT (typeOf t) []
 
         return (lb, tt)
 
+    typeOfVariantField :: Ty.Type -> Label -> Infer Type
+    typeOfVariantField (Ty.Variant ls) lb =
+        case find (\ (f, _) -> f == lb) ls of
+            (Just (_, ty)) -> return ty
+            Nothing -> throwError $ "Variant mismatch. Cannot find field "+||lb||+" in "+||ls||+""
+    typeOfVariantField ty lb =
+        throwError $ "Type mismatch. Expected variant with "+||lb||+" field. But got: "+||ty||+""
+
     typeOf :: Term -> Infer Type
     typeOf Tru = return Bool
     typeOf Fls = return Bool
@@ -126,6 +134,19 @@ run t = runReaderT (typeOf t) []
         bodyT <- local (ty:) $ typeOf body
 
         return $ ty :-> bodyT
+    typeOf (t1 :@: Te.Variant (tag, term)) = do
+        ttype <- typeOf term
+        absType <- typeOf t1
+
+        (baseType, _) <- splitArrow absType $
+            "split type of variant ascription in "+||t||+""
+
+        ft <- typeOfVariantField baseType tag
+        checkEqType ttype ft "In variant check. Type must be equal"
+
+        return absType
+    typeOf (Te.Variant v) =
+        throwError $ "Cannot infer type of variant. Ascription needed: "+||v||+""
     typeOf (t1 :@: t2) = do
         t1T <- typeOf t1
         t2T <- typeOf t2
@@ -155,4 +176,5 @@ run t = runReaderT (typeOf t) []
             $ "Fix types must be equal: "+||base||+" <> "+||result||+""
 
         return result
+
 

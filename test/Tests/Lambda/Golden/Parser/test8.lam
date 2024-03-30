@@ -1,1 +1,1 @@
-Let "add" (Lam (Just "x") Int (Lam (Just "y") Int (BinOp (Var "x") Add (Var "y")))) ((Var "add" :@ Int 1) :@ Int 3)
+Let "x" (Lam (Just "x") (Variant [("none",Unit),("some",Int)]) (Var "x") :@ Variant ("some",Int 3)) (Var "x")

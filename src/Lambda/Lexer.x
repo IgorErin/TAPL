@@ -35,6 +35,9 @@ tokens :-
   "{"                   { \_ -> TLCurlyBrace }
   "}"                   { \_ -> TRCurlyBrace }
 
+  "["                   { \_ -> TLSquare }
+  "]"                   { \_ -> TRSquare }
+
   "true"                { \_ -> TTrue }
   "false"               { \_ -> TFalse }
   "()"                  { \_ -> TUnit}
@@ -75,6 +78,10 @@ data Token
   -- { }
   | TRCurlyBrace
   | TLCurlyBrace
+
+  -- [ ]
+  | TRSquare
+  | TLSquare
 
   | TColumn
   | TDot

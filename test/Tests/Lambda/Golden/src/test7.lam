@@ -1,1 +1,1 @@
-let x (x: Int) = x in ()
+let x = [none = ()] as [none : Unit] in 2

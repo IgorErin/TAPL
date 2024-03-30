@@ -1,1 +1,1 @@
-Right (Lmb (Just "add") (Int :-> (Int :-> Int)) ((Idx 0 :@: Int 1) :@: Int 3) :@: Lmb (Just "x") Int (Lmb (Just "y") Int (BinOp (Idx 1) Add (Idx 0))))
+Right (Lmb (Just "x") (Variant [("none",Unit),("some",Int)] :-> Variant [("none",Unit),("some",Int)]) (Idx 0) :@: (Lmb (Just "x") (Variant [("none",Unit),("some",Int)]) (Idx 0) :@: Variant ("some",Int 3)))

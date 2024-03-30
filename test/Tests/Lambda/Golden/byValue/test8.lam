@@ -1,1 +1,1 @@
-Right (Int 4)
+Right (Variant ("some",Int 3))

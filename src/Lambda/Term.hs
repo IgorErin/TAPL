@@ -22,6 +22,7 @@ data Term =
     | Term :@: Term
     | Lmb Info Type Term
     | Record Record
+    | Variant Field
     | Get Term Label
     | Fix Term
     deriving (Eq, Show)

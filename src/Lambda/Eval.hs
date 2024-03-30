@@ -41,6 +41,7 @@ shift k = helper 0
             right' = helper m right
         in BinOp left' op right'
     helper m (Fix term) = Fix $ helper m term
+    helper m (Variant v) = Variant $ helper m <$> v
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -69,6 +70,7 @@ substDB j n = helper
             right' = helper right
         in BinOp left' op right'
     helper (Fix term) = Fix $ helper term
+    helper (Variant v) = Variant $ helper <$> v
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -85,6 +87,7 @@ isValue Fls         = True
 isValue (Record ls) = all (isValue . snd) ls
 isValue Unit        = True
 isValue (Int _)     = True
+isValue (Variant v) = isValue $ snd v
 isValue _           = False
 
 termOfBool :: Bool -> Term
@@ -92,15 +95,15 @@ termOfBool True = Tru
 termOfBool False = Fls
 
 runBinOp :: Term -> BinOp -> Term -> Term
-runBinOp left Eq right = termOfBool $ (left == right)
-runBinOp left NEq right = termOfBool $ (left /= right)
+runBinOp left Eq right  = termOfBool (left == right)
+runBinOp left NEq right = termOfBool (left /= right)
 runBinOp (Int left) Add (Int right) = Int $ left + right
 runBinOp (Int left) Sub (Int right) = Int $ left - right
 runBinOp (Int left) Mul (Int right) = Int $ left * right
-runBinOp (Int left) Lt (Int right) = termOfBool $ (left < right)
-runBinOp (Int left) Le (Int right) = termOfBool $ (left <= right)
-runBinOp (Int left) Gt (Int right) = termOfBool $ (left > right)
-runBinOp (Int left) Ge (Int right) = termOfBool $ (left >= right)
+runBinOp (Int left) Lt (Int right)  = termOfBool (left < right)
+runBinOp (Int left) Le (Int right)  = termOfBool (left <= right)
+runBinOp (Int left) Gt (Int right)  = termOfBool (left > right)
+runBinOp (Int left) Ge (Int right)  = termOfBool (left >= right)
 runBinOp _ _ _ = error "unexpected argument in binOp"
 
 callByValueStep :: Term -> Maybe Term
@@ -138,6 +141,9 @@ callByValueStep (Get t lb) | not $ isValue t = do
     return $ Get t' lb
 callByValueStep (Get t lb) =
     error $ "Attemt to get" ++ show lb ++ "on" ++ show t
+-- Variant
+callByValueStep t@(Variant _) | isValue t = fail "Value variant"
+callByValueStep (Variant f) = Variant <$> mapM callByValueStep f
 -- BinOp
 callByValueStep (BinOp left op right)
     | not $ isValue left = do

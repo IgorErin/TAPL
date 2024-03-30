@@ -4,7 +4,8 @@ module Lambda.Types (
     Record,
     bool, unit, int,
     arrow,
-    record
+    record,
+    variant
 ) where
 
 import Lambda.Ident (Label)
@@ -12,7 +13,9 @@ import Lambda.Ident (Label)
 infixr 3 :->
 
 type Field = (Label, Type)
+
 type Record = [Field]
+type Variant = [Field]
 
 data Type =
     Bool
@@ -20,6 +23,7 @@ data Type =
     | Int
     | Type :-> Type
     | Record Record
+    | Variant Variant
     deriving (Show, Eq)
 
 bool :: Type
@@ -34,5 +38,8 @@ int = Int
 arrow :: Type -> Type -> Type
 arrow f s = f :-> s
 
-record :: [(Label, Type)] -> Type
+record :: Record -> Type
 record = Record
+
+variant :: Variant -> Type
+variant = Variant

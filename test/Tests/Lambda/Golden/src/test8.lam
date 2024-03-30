@@ -1,1 +1,1 @@
-let add (x: Int) (y: Int) = (+ x y) in (add 1) 3
+let x = [some = 3] as [none : Unit, some : Int] in x

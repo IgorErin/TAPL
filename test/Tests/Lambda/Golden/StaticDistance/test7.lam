@@ -1,1 +1,1 @@
-Right (Lmb (Just "x") (Int :-> Int) Unit :@: Lmb (Just "x") Int (Idx 0))
+Right (Lmb (Just "x") (Variant [("none",Unit)] :-> Variant [("none",Unit)]) (Int 2) :@: (Lmb (Just "x") (Variant [("none",Unit)]) (Idx 0) :@: Variant ("none",Unit)))

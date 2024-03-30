@@ -1,1 +1,1 @@
-Right Int
+Right (Variant [("none",Unit),("some",Int)] :-> Variant [("none",Unit),("some",Int)])

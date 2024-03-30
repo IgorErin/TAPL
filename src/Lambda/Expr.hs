@@ -5,7 +5,9 @@ module Lambda.Expr  (
     unit,
     ascription,
     let_, letrec,
-    record, get,
+    record,
+    variant,
+    get,
     int,
     binop
 ) where
@@ -35,6 +37,7 @@ data Expr =
     | Lam Binder Type Expr
     | Let Name Expr Expr
     | Record Record
+    | Variant Field
     | Get Expr Label
     | Fix Expr
     deriving (Eq, Show)
@@ -66,8 +69,11 @@ unit = Unit
 ascription :: Expr -> Type -> Expr
 ascription e t = Lam (Just "x") t (Var "x") :@ e
 
-record :: [(Name, Expr)] -> Expr
+record :: Record -> Expr
 record = Record
+
+variant :: Field -> Expr
+variant = Variant
 
 get :: Expr -> Label -> Expr
 get = Get

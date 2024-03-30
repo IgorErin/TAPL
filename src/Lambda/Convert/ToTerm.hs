@@ -79,3 +79,4 @@ run e = runReaderT (helper e) []
 
         return $ T.BinOp left' op right'
     helper (E.Fix expr) = T.Fix <$> helper expr
+    helper (E.Variant v) = T.Variant <$> mapM helper v

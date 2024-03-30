@@ -79,4 +79,5 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
         right' <- helper right
 
         return $ E.BinOp left' op right'
-    helper (T.Fix term) = E.Fix <$> helper term 
+    helper (T.Fix term) = E.Fix <$> helper term
+    helper (T.Variant v) = E.Variant <$> mapM helper v
