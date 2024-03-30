@@ -5,7 +5,7 @@ module Lambda.Eval (
     ) where
 
 import Lambda.Term (Term(..))
-import Lambda.Ident (Index)
+import qualified Lambda.Index as I (Index, add, lt, isucc, ofInt)
 import Lambda.Oper (BinOp(..))
 import qualified Lambda.Pattern as Pat (Pattern(..))
 
@@ -14,16 +14,16 @@ import Data.List (find)
 -- TODO duplication shift and substDB
 
 shift :: Int -> Term -> Term
-shift k = helper 0
+shift k = helper $ I.ofInt 0
     where
     helper m (Idx n)
-        | n < m = Idx n
-        | otherwise = Idx $ n + k
+        | n `I.lt` m = Idx n
+        | otherwise = Idx $ I.add k n
     helper m (p :@: q) =
         let p' = helper m p
             q' = helper m q
         in  p' :@: q'
-    helper m (Lmb t info p) = Lmb t info $ helper (succ m) p
+    helper m (Lmb t info p) = Lmb t info $ helper (I.isucc m) p
     helper m (If guard ifTrue ifFalse) =
         let go = helper m
 
@@ -48,7 +48,7 @@ shift k = helper 0
             branches' = (helper m <$>) <$> branches
         in CaseOf scrut' branches'
 
-substDB :: Index -> Term -> Term -> Term
+substDB :: I.Index -> Term -> Term -> Term
 substDB j n = helper
     where
     helper t@(Idx n')
@@ -58,7 +58,7 @@ substDB j n = helper
         let p' = helper p
             q' = helper q
         in p' :@: q'
-    helper (Lmb t info p) = Lmb t info $ substDB (succ j) (shift 1 n) p
+    helper (Lmb t info p) = Lmb t info $ substDB (I.isucc j) (shift 1 n) p
     helper (If guard ifTrue ifFalse) =
         let guard' = helper guard
             ifTrue' = helper ifTrue
@@ -84,7 +84,7 @@ substDB j n = helper
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
     let s' = shift 1 s
-        t' = substDB 0 s' t
+        t' = substDB (I.ofInt 0) s' t
     in shift (-1) t'
 betaRuleDB t = error $ "beta rule failed in " ++ show t
 

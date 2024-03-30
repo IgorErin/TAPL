@@ -1,13 +1,12 @@
 module Lambda.Convert.ToTerm (run, Result) where
 
-import Data.List (elemIndex)
-
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
 import qualified Lambda.Term  as T (Term(..))
 import qualified Lambda.Expr  as E (Expr(..))
-import qualified Lambda.Ident as Id (Label, Name, Index)
+import qualified Lambda.Ident as Id (Label, Name)
+import qualified Lambda.Index as Ind
 import qualified Lambda.Info  as Inf (Info)
 import qualified Lambda.Types as Ty (Type)
 import qualified Lambda.Pattern as Pat(Pattern, Path, Getter(..), fetchAccess, check)
@@ -15,24 +14,19 @@ import qualified Lambda.Pattern as Pat(Pattern, Path, Getter(..), fetchAccess, c
 import qualified Lambda.Infer as I (run)
 
 import Control.Monad.Reader
-    (MonadReader(local, ask), ReaderT, runReaderT, lift)
+    (MonadReader(local), asks, ReaderT, runReaderT, lift)
 
-type Context = [Maybe Id.Name]
+type Context = Ind.Ctx (Maybe Id.Name)
 
 type Result = Either Inf.Info T.Term
 
 type HelperContext a = ReaderT Context (Either Inf.Info) a
 
 run :: E.Expr -> Result
-run e = runReaderT (helper e) []
+run e = runReaderT (helper e) Ind.emptyCtx
     where
-    nameToIndex :: Id.Name -> HelperContext Id.Index
-    nameToIndex name = do
-        ls <- ask
-
-        case elemIndex (Just name) ls of
-            Just number -> return number
-            Nothing     -> error $ "undefined reference: " ++ name
+    nameToIndex :: Id.Name -> HelperContext Ind.Index
+    nameToIndex name = asks $ Ind.getIndex (Just name) name
 
     runRecordField :: (Id.Label, Expr) -> HelperContext (Id.Label, Term)
     runRecordField (lb, expr) = do
@@ -63,7 +57,7 @@ run e = runReaderT (helper e) []
 
         return $ left' :@: right'
     helper (E.Lam name ty body) = do
-        body' <- local (name:) $ helper body
+        body' <- local (Ind.addData name) $ helper body
 
         return $ T.Lmb name ty body'
     helper (E.If guard etrue efalse) = do

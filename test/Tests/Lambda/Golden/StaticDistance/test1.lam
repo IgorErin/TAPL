@@ -1,1 +1,1 @@
-Right (Lmb (Just "f") Bool (Lmb (Just "t") Bool (If (Idx 0) (Idx 1) (Idx 0)) :@: Tru) :@: Fls)
+Right (Lmb (Just "f") Bool (Lmb (Just "t") Bool (If (Idx t) (Idx f) (Idx t)) :@: Tru) :@: Fls)

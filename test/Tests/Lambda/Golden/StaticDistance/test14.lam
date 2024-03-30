@@ -1,1 +1,1 @@
-Right (Lmb (Just "x") Bool (Idx 0) :@: Tru)
+Right (Lmb (Just "x") Bool (Idx x) :@: Tru)

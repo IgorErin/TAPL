@@ -2,20 +2,19 @@ module Lambda.Infer (run, Result) where
 
 import Lambda.Term    as Te  (Term(..), Field)
 import Lambda.Types   as Ty  (Type(..), Field, Record)
-import Lambda.Ident   as Id  (Index, intOfIndex, Label)
+import Lambda.Ident   as Id  (Label)
+import Lambda.Index   as Ind (addData, backData, Ctx, emptyCtx)
 import Lambda.Oper    as Op  (BinOp(..))
 import Lambda.Info    as Inf (Info)
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
-    ( ReaderT(runReaderT), ask, MonadReader(local) )
+    ( ReaderT(runReaderT), asks, MonadReader(local) )
 
 import Data.List (find)
 
 import Data.Text (Text)
 import Fmt ( (+|), (+||), (|+), (||+) )
-
-type Env = [Ty.Type]
 
 ---------------- Check helpers -----------------
 
@@ -95,22 +94,13 @@ mkTypeEqInfo Nothing firstT secondT =
 
 ------------------ Infer ---------------------------
 
-type Infer a = ReaderT Env (Either Info) a
+type Infer a = ReaderT (Ctx Type) (Either Info) a
 
 type Result = Either Info Type
 
 run :: Term -> Result
-run t = runReaderT (typeOf t) []
+run t = runReaderT (typeOf t) Ind.emptyCtx
     where
-    typeofIdent :: Id.Index -> Infer Type
-    typeofIdent ident = do
-        let intIndex = intOfIndex ident
-        lst <- ask
-
-        if intIndex >= length lst
-        then error "index out of boun in "+||ident||+""
-        else lst !! intIndex
-
     typeOfField :: Te.Field -> Infer Ty.Field
     typeOfField  (lb, term) = do
         tt <- typeOf term
@@ -138,9 +128,9 @@ run t = runReaderT (typeOf t) []
         checkEqType ifTrueT ifFalseT $ mkBranchInfo ifTrueT ifFalseT
 
         return ifTrueT
-    typeOf (Idx v) = typeofIdent v
+    typeOf (Idx v) = asks (backData v)
     typeOf (Lmb _ ty body) = do
-        bodyT <- local (ty:) $ typeOf body
+        bodyT <- local (addData ty) $ typeOf body
 
         return $ ty :-> bodyT
     typeOf (t1 :@: Te.Variant (tag, term)) = do

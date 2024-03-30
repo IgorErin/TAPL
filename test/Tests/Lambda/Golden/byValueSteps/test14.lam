@@ -1,2 +1,2 @@
-Lmb (Just "x") Bool (Idx 0) :@: Tru
+Lmb (Just "x") Bool (Idx x) :@: Tru
 Tru

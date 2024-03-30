@@ -6,39 +6,33 @@ import Lambda.Expr (Expr((:@)))
 import qualified Lambda.Term as T (Term(..))
 import qualified Lambda.Expr as E (Expr(..))
 
-import qualified Lambda.Ident as I
+import Lambda.Ident ( Name )
+import qualified Lambda.Index as Ind
 
 import Data.Maybe ( fromJust )
 
-import Control.Monad.Reader (runReader, MonadReader (local, ask), Reader)
+import Control.Monad.Reader (runReader, asks, ask, MonadReader (local), Reader)
 
-data BackContext = BContext { depth :: Int, ctx :: Context }
+type Ctx = Ind.Ctx (Maybe Name)
 
-type Context = [Maybe I.Name]
-
-newName :: I.Name -> Context -> I.Name
+newName :: Name -> Ctx -> Name
 newName var ctx
-    | Just var `elem` ctx = helper 0 var
+    | Just var `Ind.exist` ctx = helper 0 var
     | otherwise      = var
     where
-    helper :: Int -> I.Name -> I.Name
+    helper :: Int -> Name -> Name
     helper count name
-        | Just name' `elem` ctx = helper (succ count) name
+        | Just name' `Ind.exist` ctx = helper (succ count) name
         | otherwise        = name'
         where name' = name ++ show count
 
 run :: Term -> Expr
-run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
+run t = runReader (helper t) Ind.emptyCtx
     where
-    getName :: I.Index -> Reader BackContext I.Name
-    getName ident = do
-        BContext { depth, ctx } <- ask
+    getName :: Ind.Index -> Reader Ctx Name
+    getName index = asks $ fromJust . Ind.backData index
 
-        if ident >= depth
-        then error "free index in term"
-        else return $ fromJust $ ctx !! ident
-
-    helper :: Term -> Reader BackContext Expr
+    helper :: Term -> Reader (Ind.Ctx (Maybe Name)) Expr
     helper (T.Idx ident) = E.Var <$> getName ident
     helper (left :@: right) = do
         left' <- helper left
@@ -46,14 +40,11 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
 
         return $ left' :@ right'
     helper (T.Lmb name ty body) = do
-        BContext { depth = _, ctx = c } <- ask
+        ctx <- ask
 
-        let name' = flip newName c <$> name
-        -- TODO rewrite
-        body' <- local
-            (\ BContext{ depth, ctx} ->
-                 BContext { depth = succ depth, ctx = name' : ctx})
-            $ helper body
+        let name' = flip newName ctx <$> name
+
+        body' <- local (Ind.addData name') $ helper body
 
         return $ E.Lam name' ty body'
     helper (T.If guard ttrue tfalse) = do

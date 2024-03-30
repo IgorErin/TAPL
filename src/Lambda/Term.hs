@@ -1,7 +1,8 @@
 module Lambda.Term (Term(..), Field, Record) where
 
 import Lambda.Types(Type)
-import Lambda.Ident (Index, Label)
+import Lambda.Ident (Label)
+import Lambda.Index (Index)
 import Lambda.Oper (BinOp)
 import Lambda.Pattern (Pattern)
 
