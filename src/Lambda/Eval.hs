@@ -7,6 +7,7 @@ module Lambda.Eval (
 import Lambda.Term (Term(..))
 import Lambda.Ident (Index)
 import Lambda.Oper (BinOp(..))
+import qualified Lambda.Pattern as Pat (Pattern(..))
 
 import Data.List (find)
 
@@ -42,6 +43,10 @@ shift k = helper 0
         in BinOp left' op right'
     helper m (Fix term) = Fix $ helper m term
     helper m (Variant v) = Variant $ helper m <$> v
+    helper m (CaseOf scrut branches) =
+        let scrut' = helper m scrut
+            branches' = (helper m <$>) <$> branches
+        in CaseOf scrut' branches'
 
 substDB :: Index -> Term -> Term -> Term
 substDB j n = helper
@@ -71,6 +76,10 @@ substDB j n = helper
         in BinOp left' op right'
     helper (Fix term) = Fix $ helper term
     helper (Variant v) = Variant $ helper <$> v
+    helper (CaseOf scrut branches) =
+        let scrut' = helper scrut
+            branches' = (helper <$>) <$> branches
+        in CaseOf scrut' branches'
 
 betaRuleDB :: Term -> Term
 betaRuleDB ((Lmb _ _ t) :@: s) =
@@ -106,6 +115,12 @@ runBinOp (Int left) Gt (Int right)  = termOfBool (left > right)
 runBinOp (Int left) Ge (Int right)  = termOfBool (left >= right)
 runBinOp _ _ _ = error "unexpected argument in binOp"
 
+isBranch :: Term -> Pat.Pattern -> Bool
+isBranch (Record _) (Pat.Record _) = True
+isBranch (Variant (lb, term)) (Pat.Variant lb' pat') =
+    lb == lb' && isBranch term pat'
+isBranch _ _ = False -- TODO
+
 callByValueStep :: Term -> Maybe Term
 callByValueStep (If Tru ifTrue _) = return ifTrue
 callByValueStep (If Fls _ ifFalse) = return ifFalse
@@ -131,16 +146,28 @@ callByValueStep (Record ls) =
         run []             =  Nothing
     in Record <$> run ls
 -- Get
-callByValueStep (Get r@(Record ls) lb) | isValue r =
-    case find ((== lb) . fst) ls of
-        Just t -> return $ snd t
-        Nothing -> error ""
 callByValueStep (Get t lb) | not $ isValue t = do
     t' <- callByValueStep t
 
     return $ Get t' lb
+callByValueStep (Get r@(Record ls) lb) | isValue r =
+    case find ((== lb) . fst) ls of
+        Just t -> return $ snd t
+        Nothing -> error ""
+callByValueStep (Get v@(Variant (lb', f)) lb) | isValue v =
+    if lb == lb'
+    then return f
+    else error "Incorrect getter" -- TODO more info
 callByValueStep (Get t lb) =
     error $ "Attemt to get" ++ show lb ++ "on" ++ show t
+callByValueStep (CaseOf scrut brances) | not $ isValue scrut = do
+    scrut' <-callByValueStep scrut
+
+    return $ CaseOf scrut' brances
+callByValueStep (CaseOf scrut branches) = do
+    case find (isBranch scrut . fst) branches of
+        Just (_, cont) -> return $ cont :@: scrut
+        Nothing -> error "cannot find branch"
 -- Variant
 callByValueStep t@(Variant _) | isValue t = fail "Value variant"
 callByValueStep (Variant f) = Variant <$> mapM callByValueStep f

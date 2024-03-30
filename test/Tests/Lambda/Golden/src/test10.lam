@@ -1,1 +1,4 @@
-(fun (x: Bool) -> if x then true else false) (if false then true else false)
+let x = [none = ()] as [none : Unit] in
+    match x with
+    | none -> 5
+    end

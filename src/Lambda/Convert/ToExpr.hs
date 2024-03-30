@@ -81,3 +81,8 @@ run t = runReader (helper t) $ BContext { depth = 0, ctx = [] }
         return $ E.BinOp left' op right'
     helper (T.Fix term) = E.Fix <$> helper term
     helper (T.Variant v) = E.Variant <$> mapM helper v
+    helper (T.CaseOf scrut branches) = do
+        scrut' <- helper scrut
+        branches' <- mapM (mapM helper) branches
+
+        return $ E.CaseOf scrut' branches'

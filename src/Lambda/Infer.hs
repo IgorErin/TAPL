@@ -1,13 +1,14 @@
-module Lambda.Infer (run, Info, Result) where
+module Lambda.Infer (run, Result) where
 
-import Lambda.Term    as Te (Term(..), Field)
-import Lambda.Types   as Ty (Type(..), Field, Record)
-import Lambda.Ident   as I  (Index, Label)
-import Lambda.Oper    as Op (BinOp(..))
+import Lambda.Term    as Te  (Term(..), Field)
+import Lambda.Types   as Ty  (Type(..), Field, Record)
+import Lambda.Ident   as Id  (Index, intOfIndex, Label)
+import Lambda.Oper    as Op  (BinOp(..))
+import Lambda.Info    as Inf (Info)
 
 import Control.Monad.Except (MonadError(throwError))
 import Control.Monad.Reader
-    ( ReaderT(runReaderT), asks, MonadReader(local) )
+    ( ReaderT(runReaderT), ask, MonadReader(local) )
 
 import Data.List (find)
 
@@ -15,8 +16,6 @@ import Data.Text (Text)
 import Fmt ( (+|), (+||), (|+), (||+) )
 
 type Env = [Ty.Type]
-
-type Info = Text
 
 ---------------- Check helpers -----------------
 
@@ -32,6 +31,10 @@ checkEqType f s i
     | f == s    = return ()
     | otherwise = throwError i
 
+allEqType :: [Ty.Type] -> Infer ()
+allEqType (hd : tl) = mapM_ (\t -> checkEqType hd t "Branch check") tl
+allEqType [] = return ()
+
 checkBool :: Ty.Type -> Info -> Infer ()
 checkBool = checkEqType Bool
 
@@ -40,7 +43,7 @@ splitArrow t i = case t of
     argT :-> bodyT -> return (argT, bodyT)
     _              -> throwError i
 
-checkGetType :: Ty.Type -> I.Label -> Infer Ty.Type
+checkGetType :: Ty.Type -> Id.Label -> Infer Ty.Type
 checkGetType ty@(Ty.Record ls) lb = case find ((== lb) . fst) ls of
         Just x -> return $ snd x
         Nothing -> throwError $ "Attemt to get "+||lb||+"on type:"+||ty||+". No such field."
@@ -99,8 +102,14 @@ type Result = Either Info Type
 run :: Term -> Result
 run t = runReaderT (typeOf t) []
     where
-    typeofIdent :: I.Index -> Infer Type
-    typeofIdent ident = asks (!! ident)
+    typeofIdent :: Id.Index -> Infer Type
+    typeofIdent ident = do
+        let intIndex = intOfIndex ident
+        lst <- ask
+
+        if intIndex >= length lst
+        then error "index out of boun in "+||ident||+""
+        else lst !! intIndex
 
     typeOfField :: Te.Field -> Infer Ty.Field
     typeOfField  (lb, term) = do
@@ -176,5 +185,19 @@ run t = runReaderT (typeOf t) []
             $ "Fix types must be equal: "+||base||+" <> "+||result||+""
 
         return result
+    typeOf (Te.CaseOf scurtiny cases) = do
+        scrutType <- typeOf scurtiny
+        branTypes <- mapM (typeOf . snd) cases
+
+        allEqType branTypes
+
+        case branTypes of
+            hd : _ -> do
+                (base, result) <- splitArrow hd ""
+
+                checkEqType scrutType base $ "Branch arg type should mismatch"
+
+                return result
+            [] -> throwError "empty branches. cannot infer type"
 
 

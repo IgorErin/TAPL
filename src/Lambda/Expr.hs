@@ -9,7 +9,8 @@ module Lambda.Expr  (
     variant,
     get,
     int,
-    binop
+    binop,
+    caseOf
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
@@ -17,6 +18,7 @@ import Data.List.NonEmpty ( NonEmpty(..) )
 import Lambda.Types (Type, arrow)
 import Lambda.Ident (Name, Label)
 import Lambda.Oper (BinOp)
+import Lambda.Pattern (Pattern)
 
 type Binder = Maybe Name
 
@@ -36,6 +38,7 @@ data Expr =
     | Expr :@ Expr
     | Lam Binder Type Expr
     | Let Name Expr Expr
+    | CaseOf Expr [(Pattern, Expr)]
     | Record Record
     | Variant Field
     | Get Expr Label
@@ -83,6 +86,9 @@ int = Int
 
 binop :: Expr -> BinOp -> Expr -> Expr
 binop = BinOp
+
+caseOf :: Expr -> [(Pattern, Expr)] -> Expr
+caseOf = CaseOf
 
 --------------------------- Let ----------------------------
 

@@ -11,7 +11,8 @@ import qualified Lambda.Expr        as LE (Expr)
 import qualified Lambda.Lexer       as LL (alexScanTokens, Token)
 import qualified Lambda.Parser      as LR (run)
 import qualified Lambda.Eval        as LEval (callByValueStep, steps, eval)
-import qualified Lambda.Infer       as Infer (run, Result, Info)
+import qualified Lambda.Infer       as Infer (run, Result)
+import qualified Lambda.Info        as Inf   (Info)
 
 tests :: IO TestTree
 tests = testGroup "Lambda" <$>
@@ -43,7 +44,7 @@ staticDistance = ToTerm.run . parser
 staticDistanceTests :: IO TestTree
 staticDistanceTests = TestLambda.runShow "StaticDistance" staticDistance
 
-backToNames :: String -> Either Infer.Info LE.Expr
+backToNames :: String -> Either Inf.Info LE.Expr
 backToNames str =
     let term = staticDistance str
     in ToExpr.run <$> term

@@ -6,6 +6,7 @@ import qualified Lambda.Expr as LE
 import qualified Lambda.Types as TT
 import qualified Lambda.Ident as LI
 import qualified Lambda.Oper as Op
+import qualified Lambda.Pattern as Pat
 
 import Data.List.NonEmpty hiding (reverse)
 }
@@ -49,6 +50,11 @@ import Data.List.NonEmpty hiding (reverse)
 
    "as"     { L.TAs }
 
+   "match"  { L.TMatch }
+   "with"   { L.TWith }
+   '|'      { L.TVerBar }
+   "end"    { L.TEnd }
+
    "letrec" { L.TLetrec }
    "let"    { L.TLet }
    "in"     { L.TIn }
@@ -89,6 +95,7 @@ Expr
     | Expr '.' Label                                        { LE.get $1 $3 }
     | int                                                   { LE.int $1 }
     | '(' BinOp Expr Expr ')'                               { LE.binop $3 $2 $4 }
+    | MatchWith                                             { $1 }
 
 BinOp :: { Op.BinOp }
 BinOp
@@ -119,6 +126,24 @@ Binder
 BinderWithType :: { (LE.Binder, TT.Type) }
 BinderWithType : '(' Binder ':' TypeExpr ')'        { ($2, $4) }
 
+---------------------------- Patterns -------------------------
+
+MatchWith :: { LE.Expr }
+MatchWith : "match" Expr "with" PatBranches "end" { LE.caseOf $2 $4 }
+
+PatBranches :: { [(Pat.Pattern, LE.Expr)]}
+PatBranches : list (PatBranch)                       { $1 }
+
+PatBranch :: { (Pat.Pattern, LE.Expr)}
+PatBranch : '|' Pattern "->" Expr                   { ($2, $4) }
+
+Pattern :: { Pat.Pattern }
+Pattern
+    : ident                                         { Pat.var $1 }
+    | '_'                                           { Pat.wild }
+    | RecordPattern                                 { Pat.record $1 }
+    | VariantPattern                                { $1 }
+
 --------------------------- Variant ---------------------------
 
 VariantExpr :: { (LI.Label, LE.Expr) }
@@ -129,6 +154,9 @@ VariantType : VariantOf (RecordFiledWithType)        { $1 }
 
 VariantOf (f) : '[' sep (f, ',') ']'                 { $2 }
 
+VariantPattern :: { Pat.Pattern }
+VariantPattern : '[' Label '=' Pattern ']'              { Pat.variant $2 $4 }
+
 --------------------------- Record -----------------------------
 
 RecordExpr :: { [(LI.Label, LE.Expr)]}
@@ -136,6 +164,9 @@ RecordExpr: RecordOf (RecordInit)                   { $1 }
 
 RecordType :: { [(LI.Label, TT.Type)] }
 RecordType : RecordOf (RecordFiledWithType)         { $1 }
+
+RecordPattern :: { [(LI.Label, Pat.Pattern)] }
+RecordPattern : RecordOf (FieldPattern)            { $1 }
 
 RecordOf (f) : '{' sep (f, ',') '}'                 { $2 }
 
@@ -146,6 +177,9 @@ RecordFiledWithType : ident ':' TypeExpr            { ($1, $3) }
 
 RecordInit :: { (LI.Label, LE.Expr) }
 RecordInit : ident '=' Expr                         { ($1, $3) }
+
+FieldPattern :: { (LI.Label, Pat.Pattern) }
+FieldPattern : Label '=' Pattern                   { ($1, $3) }
 
 --------------------------- Types ------------------------------
 

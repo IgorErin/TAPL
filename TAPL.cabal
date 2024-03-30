@@ -35,9 +35,11 @@ library
       Lambda.Expr
       Lambda.Ident
       Lambda.Infer
+      Lambda.Info
       Lambda.Lexer
       Lambda.Oper
       Lambda.Parser
+      Lambda.Pattern
       Lambda.Term
       Lambda.Types
   other-modules:

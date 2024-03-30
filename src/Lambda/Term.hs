@@ -3,6 +3,7 @@ module Lambda.Term (Term(..), Field, Record) where
 import Lambda.Types(Type)
 import Lambda.Ident (Index, Label)
 import Lambda.Oper (BinOp)
+import Lambda.Pattern (Pattern)
 
 type Info = Maybe String
 
@@ -24,5 +25,6 @@ data Term =
     | Record Record
     | Variant Field
     | Get Term Label
+    | CaseOf Term [(Pattern, Term)]
     | Fix Term
     deriving (Eq, Show)

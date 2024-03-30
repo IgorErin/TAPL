@@ -5,20 +5,23 @@ import Data.List (elemIndex)
 import Lambda.Term (Term((:@:)))
 import Lambda.Expr (Expr((:@)))
 
-import qualified Lambda.Term as T (Term(..))
-import qualified Lambda.Expr as E (Expr(..))
+import qualified Lambda.Term  as T (Term(..))
+import qualified Lambda.Expr  as E (Expr(..))
 import qualified Lambda.Ident as Id (Label, Name, Index)
+import qualified Lambda.Info  as Inf (Info)
+import qualified Lambda.Types as Ty (Type)
+import qualified Lambda.Pattern as Pat(Pattern, Path, Getter(..), fetchAccess, check)
 
-import qualified Lambda.Infer as I (run, Info)
+import qualified Lambda.Infer as I (run)
 
 import Control.Monad.Reader
     (MonadReader(local, ask), ReaderT, runReaderT, lift)
 
 type Context = [Maybe Id.Name]
 
-type Result = Either I.Info T.Term
+type Result = Either Inf.Info T.Term
 
-type HelperContext a = ReaderT Context (Either I.Info) a
+type HelperContext a = ReaderT Context (Either Inf.Info) a
 
 run :: E.Expr -> Result
 run e = runReaderT (helper e) []
@@ -36,6 +39,21 @@ run e = runReaderT (helper e) []
         term  <- helper expr
 
         return (lb, term)
+
+    caseOfBranch :: Ty.Type -> Pat.Pattern -> Expr -> Expr
+    caseOfBranch typ pat body =
+        E.Lam (Just scurtini) typ $ foldr step body access
+        where
+        scurtini = "_scrutiny"
+
+        transGet :: Pat.Path -> Expr -> Expr
+        transGet p exr = foldr lam exr p
+            where lam (Pat.Get f) acc = E.Get acc f
+
+        step :: (Id.Name, Pat.Path) -> Expr -> Expr
+        step (name, path) = E.Let name (transGet path (E.Var scurtini))
+
+        access = Pat.fetchAccess pat
 
     helper :: E.Expr -> HelperContext T.Term
     helper (E.Var name) = T.Idx <$> nameToIndex name
@@ -64,7 +82,21 @@ run e = runReaderT (helper e) []
         let lam = E.Lam (Just name) ty body
 
         helper $ lam :@ expr
+    helper (E.CaseOf escrut branchs) = do
+        scrut <- helper escrut
+        scrytTy <- lift $ I.run scrut
+
+        let pats = fst <$> branchs
+        lift $ Pat.check scrytTy pats
+
+        let conts = uncurry (caseOfBranch scrytTy) <$> branchs
+        lambs <- mapM helper conts
+
+        let branchs' = zip pats lambs
+
+        return $ T.CaseOf scrut branchs'
     helper (E.Record ls) = do
+        -- TODO check record fields
         ls' <- mapM runRecordField ls
 
         return $ T.Record ls'

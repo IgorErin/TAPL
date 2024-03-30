@@ -61,6 +61,11 @@ tokens :-
   "in"                  { \_ -> TIn }
   "="                   { \_ -> TEq }
 
+  "match"               { \_ -> TMatch }
+  "with"                { \_ -> TWith }
+  "|"                   { \_ -> TVerBar }
+  "end"                 { \_ -> TEnd }
+
   ","                   { \_ -> TComma }
   "."                   { \_ -> TDot }
 
@@ -86,6 +91,11 @@ data Token
   | TColumn
   | TDot
   | TComma
+
+  | TMatch
+  | TWith
+  | TVerBar
+  | TEnd
 
   -- if then else
   | TIf
