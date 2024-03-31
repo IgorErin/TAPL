@@ -1,1 +1,1 @@
-(fun (x: Unit) -> x) true
+(fun (lol: Int) -> let l = lol in 0)

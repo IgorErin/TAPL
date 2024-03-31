@@ -1,1 +1,1 @@
-Right (Lam (Just "x") (Variant [("none",Unit)] :-> Variant [("none",Unit)]) (Int 2) :@ (Lam (Just "x") (Variant [("none",Unit)]) (Var "x") :@ Variant ("none",Unit)))
+Right (Lam (Just "x") (Variant [("none",Unit)]) (Int 2) :@ (Lam (Just "x") (Variant [("none",Unit)]) (Var "x") :@ Variant ("none",Unit)))

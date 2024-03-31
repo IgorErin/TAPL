@@ -1,4 +1,4 @@
-Lmb (Just "x") Bool (If (Idx 0) Tru Fls) :@: If Fls Tru Fls
-Lmb (Just "x") Bool (If (Idx 0) Tru Fls) :@: Fls
-If Fls Tru Fls
-Fls
+CaseOf (Lmb (Just "x") (Variant [("none",Unit)]) (Idx x) :@: Variant ("none",Unit)) [(Variant "none" Wild,Lmb (Just "_scrutiny") (Variant [("none",Unit)]) (Int 5))]
+CaseOf (Variant ("none",Unit)) [(Variant "none" Wild,Lmb (Just "_scrutiny") (Variant [("none",Unit)]) (Int 5))]
+Lmb (Just "_scrutiny") (Variant [("none",Unit)]) (Int 5) :@: Variant ("none",Unit)
+Int 5

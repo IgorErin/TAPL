@@ -1,4 +1,3 @@
-let x = [none = ()] as [none : Unit] in
-    match x with
-    | none -> 5
-    end
+match [none = ()] as [none : Unit] with
+| [ none = _] -> 5
+end

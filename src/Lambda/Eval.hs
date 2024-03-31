@@ -119,6 +119,8 @@ isBranch :: Term -> Pat.Pattern -> Bool
 isBranch (Record _) (Pat.Record _) = True
 isBranch (Variant (lb, term)) (Pat.Variant lb' pat') =
     lb == lb' && isBranch term pat'
+isBranch _ Pat.Wild = True
+isBranch _ (Pat.Var _) = True
 isBranch _ _ = False -- TODO
 
 callByValueStep :: Term -> Maybe Term

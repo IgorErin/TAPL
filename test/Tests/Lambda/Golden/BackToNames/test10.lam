@@ -1,1 +1,1 @@
-Right (Lam (Just "x") Bool (If (Var "x") Tru Fls) :@ If Fls Tru Fls)
+Right (CaseOf (Lam (Just "x") (Variant [("none",Unit)]) (Var "x") :@ Variant ("none",Unit)) [(Variant "none" Wild,Lam (Just "_scrutiny") (Variant [("none",Unit)]) (Int 5))])

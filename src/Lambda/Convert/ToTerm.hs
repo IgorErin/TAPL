@@ -78,12 +78,12 @@ run e = runReaderT (helper e) Ind.emptyCtx
         helper $ lam :@ expr
     helper (E.CaseOf escrut branchs) = do
         scrut <- helper escrut
-        scrytTy <- lift $ I.run scrut
+        scrutTy <- lift $ I.run scrut
 
         let pats = fst <$> branchs
-        lift $ Pat.check scrytTy pats
+        lift $ Pat.check scrutTy pats
 
-        let conts = uncurry (caseOfBranch scrytTy) <$> branchs
+        let conts = uncurry (caseOfBranch scrutTy) <$> branchs
         lambs <- mapM helper conts
 
         let branchs' = zip pats lambs

@@ -137,13 +137,13 @@ run t = runReaderT (typeOf t) Ind.emptyCtx
         ttype <- typeOf term
         absType <- typeOf t1
 
-        (baseType, _) <- splitArrow absType $
+        (baseType, resultType) <- splitArrow absType $
             "split type of variant ascription in "+||t||+""
 
         ft <- typeOfVariantField baseType tag
         checkEqType ttype ft "In variant check. Type must be equal"
 
-        return absType
+        return resultType
     typeOf (Te.Variant v) =
         throwError $ "Cannot infer type of variant. Ascription needed: "+||v||+""
     typeOf (t1 :@: t2) = do
