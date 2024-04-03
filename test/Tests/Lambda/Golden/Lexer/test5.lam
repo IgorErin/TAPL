@@ -1,1 +1,1 @@
-[TIf,TLParent,TLt,TLParent,TAdd,TInt 0,TInt 1,TRParent,TLParent,TAdd,TInt 1,TInt 1,TRParent,TRParent,TThen,TInt 3,TElse,TInt 4]
+[TIf,TTrue,TThen,TInt 3,TElse,TInt 4]

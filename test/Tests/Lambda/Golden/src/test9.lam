@@ -1,5 +1,1 @@
-letrec fac (x: Int) : Int =
-    if (== x 1)
-    then 1
-    else (* x (fac (- x 1)))
-in fac 4
+let x = 4 in succ x

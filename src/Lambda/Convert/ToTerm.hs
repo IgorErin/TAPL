@@ -56,10 +56,10 @@ run e = runReaderT (helper e) Ind.emptyCtx
         right' <- helper right
 
         return $ left' :@: right'
-    helper (E.Lam name ty body) = do
+    helper (E.Lam name _ body) = do
         body' <- local (Ind.addData name) $ helper body
 
-        return $ T.Lmb name ty body'
+        return $ T.Lmb name body'
     helper (E.If guard etrue efalse) = do
         guard' <- helper guard
         etrue' <- helper etrue
@@ -99,10 +99,9 @@ run e = runReaderT (helper e) Ind.emptyCtx
 
         return $ T.Get term lb
     helper (E.Int n) = return $ T.Int n
-    helper (E.BinOp left op right) = do
-        left' <- helper left
-        right' <- helper right
+    helper (E.UnOp op expr) = do
+        expr' <- helper expr
 
-        return $ T.BinOp left' op right'
+        return $ T.UnOp op expr'
     helper (E.Fix expr) = T.Fix <$> helper expr
     helper (E.Variant v) = T.Variant <$> mapM helper v

@@ -17,15 +17,9 @@ tokens :-
 
   "fun"                 { \_ -> TLambda  }
 
-  "+"                   { \_ -> TAdd }
-  "-"                   { \_ -> TSub }
-  "*"                   { \_ -> TMul }
-  ">"                   { \_ -> TGt }
-  ">="                  { \_ -> TGe }
-  "<"                   { \_ -> TLt }
-  "<="                  { \_ -> TLe }
-  "=="                  { \_ -> TEqEq }
-  "<>"                  { \_ -> TLtGt }
+  "isZero"              { \_ -> TIsZero }
+  "succ"                { \_ -> TSucc }
+  "pred"                { \_ -> TPred}
 
   "->"                  { \_ -> TArrow   }
 
@@ -118,15 +112,9 @@ data Token
   | TUnitType
   | TIntType
 
-  | TAdd
-  | TSub
-  | TMul
-  | TGt
-  | TGe
-  | TLt
-  | TLe
-  | TEqEq
-  | TLtGt
+  | TIsZero
+  | TSucc
+  | TPred
 
   | TWildCard
 

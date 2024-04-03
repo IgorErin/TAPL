@@ -1,9 +1,8 @@
 module Lambda.Term (Term(..), Field, Record) where
 
-import Lambda.Types(Type)
 import Lambda.Ident (Label)
 import Lambda.Index (Index)
-import Lambda.Oper (BinOp)
+import Lambda.Oper (UnOp)
 import Lambda.Pattern (Pattern)
 
 type Info = Maybe String
@@ -19,10 +18,10 @@ data Term =
     | Fls
     | Unit
     | Int Int
-    | BinOp Term BinOp Term
+    | UnOp UnOp Term
     | If Term Term Term
     | Term :@: Term
-    | Lmb Info Type Term
+    | Lmb Info Term
     | Record Record
     | Variant Field
     | Get Term Label

@@ -1,2 +1,1 @@
-let x = { fst = 1, snd = 2 } in
-if (< x.fst x.snd) then 0 else 1
+let x = [none = 4] as [none : Int] in x

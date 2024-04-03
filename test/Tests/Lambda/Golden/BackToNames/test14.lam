@@ -1,1 +1,0 @@
-Right (Lam (Just "x") Bool (Var "x") :@ Tru)

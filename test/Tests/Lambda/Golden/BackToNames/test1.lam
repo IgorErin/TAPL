@@ -1,1 +1,0 @@
-Right (Lam (Just "f") Bool (Lam (Just "t") Bool (If (Var "t") (Var "f") (Var "t")) :@ Tru) :@ Fls)

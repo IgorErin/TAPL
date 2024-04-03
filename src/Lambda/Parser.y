@@ -61,15 +61,9 @@ import Data.List.NonEmpty hiding (reverse)
    '='      { L.TEq }
    int      { L.TInt $$ }
 
-   "+"       { L.TAdd }
-   "-"       { L.TSub }
-   "*"       { L.TMul }
-   ">"       { L.TGt }
-   ">="      { L.TGe }
-   "<"       { L.TLt }
-   "<="      { L.TLe }
-   "=="      { L.TEqEq }
-   "<>"      { L.TLtGt }
+   "isZero" { L.TIsZero }
+   "succ"   { L.TSucc }
+   "pred"   { L.TPred }
 
    ident    { L.TIdent $$ }
 %%
@@ -94,20 +88,14 @@ Expr
     | VariantExpr                                           { LE.variant $1 }
     | Expr '.' Label                                        { LE.get $1 $3 }
     | int                                                   { LE.int $1 }
-    | '(' BinOp Expr Expr ')'                               { LE.binop $3 $2 $4 }
+    | UnOp Expr                                             { LE.unOp $1 $2 }
     | MatchWith                                             { $1 }
 
-BinOp :: { Op.BinOp }
-BinOp
-    : "+"                                      { Op.add }
-    | "-"                                      { Op.sub }
-    | "*"                                      { Op.mul }
-    | ">"                                      { Op.gt }
-    | ">="                                     { Op.ge }
-    | "<"                                      { Op.lt }
-    | "<="                                     { Op.le }
-    | "=="                                     { Op.eq }
-    | "<>"                                     { Op.neq }
+UnOp :: { Op.UnOp }
+UnOp
+    : "succ"                                        { Op.succ_ }
+    | "pred"                                        { Op.pred_ }
+    | "isZero"                                      { Op.isZero }
 
 Var :: { LE.Expr }
 Var : ident                                   { LE.var $1 }

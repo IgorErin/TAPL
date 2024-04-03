@@ -1,1 +1,1 @@
-Lam (Just "x") Unit (Var "x") :@ Tru
+Lam (Just "lol") Int (Let "l" (Var "lol") (Int 0))

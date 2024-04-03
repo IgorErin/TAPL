@@ -2,16 +2,19 @@ module Lambda.Pattern (
     Pattern(..),
     Path,
     Getter(..),
-    fetchAccess, check,
+    fetchAccess,
+    check, getVarTypes,
     var, wild, record, variant) where
 
 import Lambda.Ident (Label, Name)
 import Lambda.Info (Info)
-import qualified Lambda.Types as Ty (Type(..))
+import qualified Lambda.Types as Ty (Type(..), fget)
 
 import Control.Monad.Except (MonadError (throwError))
+import Control.Monad.State
 
 import Data.List (find)
+import Data.Map as Map
 
 import Fmt ((+|), (|+), (||+), (+||))
 
@@ -38,8 +41,8 @@ fetchAccess (Var n) = [(n, [])]
 fetchAccess (Variant lb pat) = ((Get lb:) <$>) <$> fetchAccess pat
 fetchAccess (Record ls) = concatMap (\(lb, pat) -> fetchAccess (Variant lb pat)) ls
 
-checkDup :: Pattern -> Either Info ()
-checkDup pat = case findDup vars of
+checkDupVar :: Pattern -> Either Info ()
+checkDupVar pat = case findDup vars of
         Just name -> throwError $ "duplicate var in pattern:"+|name|+"."
         Nothing   -> return ()
     where
@@ -50,18 +53,23 @@ checkDup pat = case findDup vars of
 
     vars = getVars pat
 
-checkType :: Ty.Type -> Pattern -> Either Info ()
-checkType _ Wild = return ()
-checkType _ (Var _) = return ()
-checkType (Ty.Record tls) (Record ls) = do
-    mapM_ (\(lb, pat) -> case find ((== lb).fst) tls of
-            Just (_, typ) -> checkType typ pat
-            Nothing -> throwError $ "Pattern error. Field "+||lb||+"doesnot exists")
-        ls
-checkType (Ty.Variant fields) (Variant lb pat) = case find ((== lb).fst) fields of
-        Just (_, typ) -> checkType typ pat
+type TypeCtx = Map.Map Name Ty.Type
+type TypeCtxM a = StateT TypeCtx (Either Info) a
+
+getVarTypes :: Ty.Type -> Pattern -> Either Info TypeCtx
+getVarTypes t p = execStateT (helper p t) Map.empty
+    where
+    helper :: Pattern -> Ty.Type -> TypeCtxM ()
+    helper Wild _ = return ()
+    helper (Var name) typ = modify $ Map.insert name typ
+    helper (Record ls) (Ty.Record tls) = do
+        mapM_ (\(lb, pat) -> case Ty.fget lb tls of
+            Just typ -> helper pat typ
+            Nothing -> throwError $ "Pattern error. Field "+||lb||+"doesnot exists") ls
+    helper (Variant lb pat) (Ty.Variant tls) = case Ty.fget lb tls of
+        Just typ -> helper pat typ
         Nothing -> throwError $ "Pattern error. No"+||lb||+"field"
-checkType typ pat = throwError $ "Pattern error. Type check faild.\n"+||pat||+"\n"+||typ||+""
+    helper typ pat = throwError $ "Pattern error. Type check faild.\n"+||pat||+"\n"+||typ||+""
 
 checkOverlapping :: [Pattern] -> Either Info ()
 checkOverlapping (hd : tl) = case unreachable of
@@ -89,13 +97,16 @@ checkRecordDup (Record ls) = case findDup lbs of
     where lbs = fst <$> ls
 checkRecordDup _ = return ()
 
+checkExhaustive :: Pattern -> Either Info ()
+checkExhaustive = undefined -- TODO
+
 check :: Ty.Type -> [Pattern] -> Either Info ()
-check typ pats = do
-    mapM_ checkDup pats
-    mapM_ (checkType typ) pats
+check ty pats = do
+    mapM_ checkDupVar pats
     mapM_ checkRecordDup pats
 
     checkOverlapping pats
+    mapM_ (getVarTypes ty) pats
 
 ------------------------ constructors ------------------------
 

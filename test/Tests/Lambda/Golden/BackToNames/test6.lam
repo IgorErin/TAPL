@@ -1,1 +1,0 @@
-Right (Lam (Just "x") (Record [("fst",Int),("snd",Int)]) (If (BinOp (Get (Var "x") "fst") Lt (Get (Var "x") "snd")) (Int 0) (Int 1)) :@ Record [("fst",Int 1),("snd",Int 2)])

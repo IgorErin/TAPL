@@ -1,1 +1,1 @@
-Let "x" (Record [("fst",Int 1),("snd",Int 2)]) (If (BinOp (Get (Var "x") "fst") Lt (Get (Var "x") "snd")) (Int 0) (Int 1))
+Let "x" (Lam (Just "x") (Variant (Fields [("none",Int)])) (Var "x") :@ Variant ("none",Int 4)) (Var "x")

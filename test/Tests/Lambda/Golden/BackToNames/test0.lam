@@ -1,1 +1,0 @@
-Right (Lam (Just "x") Bool (Lam (Just "y") Bool (Lam (Just "u") Unit (Var "u") :@ Unit) :@ Fls) :@ Tru)

@@ -1,32 +1,14 @@
-module Lambda.Oper (BinOp(..),
-    add, sub, mul, gt, ge, lt, le, eq, neq
+module Lambda.Oper (UnOp(..),
+    succ_, pred_, isZero
     ) where
 
-data BinOp = Add | Sub | Mul | Lt | Le | Gt | Ge | Eq | NEq deriving (Eq, Show)
+data UnOp = Succ | Pred | IsZero deriving (Show, Eq)
 
-add :: BinOp
-add = Add
+succ_ :: UnOp
+succ_ = Succ
 
-sub :: BinOp
-sub = Sub
+pred_ :: UnOp
+pred_ = Pred
 
-mul :: BinOp
-mul = Mul
-
-gt :: BinOp
-gt = Gt
-
-ge :: BinOp
-ge = Ge
-
-lt :: BinOp
-lt = Lt
-
-le :: BinOp
-le = Le
-
-eq :: BinOp
-eq = Eq
-
-neq :: BinOp
-neq = NEq
+isZero :: UnOp
+isZero = IsZero

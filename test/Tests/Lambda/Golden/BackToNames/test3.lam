@@ -1,1 +1,0 @@
-Right (Lam (Just "x") (Record [("t",Bool),("u",Unit)]) (Lam (Just "x0") (Record [("u",Unit),("t",Bool)]) (Var "x0") :@ Var "x") :@ Record [("t",Tru),("u",Unit)])

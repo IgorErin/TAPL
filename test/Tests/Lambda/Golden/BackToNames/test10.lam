@@ -1,1 +1,0 @@
-Right (CaseOf (Lam (Just "x") (Variant [("none",Unit)]) (Var "x") :@ Variant ("none",Unit)) [(Variant "none" Wild,Lam (Just "_scrutiny") (Variant [("none",Unit)]) (Int 5))])

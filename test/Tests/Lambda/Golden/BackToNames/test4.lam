@@ -1,1 +1,0 @@
-Right (Lam (Just "x") (Record [("t",Bool),("y",Bool)]) (If (Get (Var "x") "t") (Get (Var "x") "y") (Get (Var "x") "t")) :@ Record [("t",Tru),("y",Fls)])

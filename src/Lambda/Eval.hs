@@ -6,10 +6,11 @@ module Lambda.Eval (
 
 import Lambda.Term (Term(..))
 import qualified Lambda.Index as I (Index, add, lt, isucc, ofInt)
-import Lambda.Oper (BinOp(..))
+import Lambda.Oper (UnOp(..))
 import qualified Lambda.Pattern as Pat (Pattern(..))
 
 import Data.List (find)
+import Fmt ((+||), (||+))
 
 -- TODO duplication shift and substDB
 
@@ -23,7 +24,7 @@ shift k = helper $ I.ofInt 0
         let p' = helper m p
             q' = helper m q
         in  p' :@: q'
-    helper m (Lmb t info p) = Lmb t info $ helper (I.isucc m) p
+    helper m (Lmb t p) = Lmb t $ helper (I.isucc m) p
     helper m (If guard ifTrue ifFalse) =
         let go = helper m
 
@@ -37,10 +38,9 @@ shift k = helper $ I.ofInt 0
     helper m (Record ls) = Record $ (helper m <$>) <$> ls
     helper m (Get t lb)  = Get (helper m t) lb
     helper _ n@(Int _)    = n
-    helper m (BinOp left op right) =
-        let left' = helper m left
-            right' = helper m right
-        in BinOp left' op right'
+    helper m (UnOp op expr) =
+        let expr' = helper m expr
+        in UnOp op expr'
     helper m (Fix term) = Fix $ helper m term
     helper m (Variant v) = Variant $ helper m <$> v
     helper m (CaseOf scrut branches) =
@@ -58,7 +58,7 @@ substDB j n = helper
         let p' = helper p
             q' = helper q
         in p' :@: q'
-    helper (Lmb t info p) = Lmb t info $ substDB (I.isucc j) (shift 1 n) p
+    helper (Lmb t p) = Lmb t $ substDB (I.isucc j) (shift 1 n) p
     helper (If guard ifTrue ifFalse) =
         let guard' = helper guard
             ifTrue' = helper ifTrue
@@ -70,10 +70,9 @@ substDB j n = helper
     helper (Record ls) =  Record $ (helper <$>) <$> ls
     helper (Get t lb) = Get (helper t) lb
     helper t@(Int _) = t
-    helper (BinOp left op right) =
-        let left' = helper left
-            right' = helper right
-        in BinOp left' op right'
+    helper (UnOp op expr) =
+        let expr' = helper expr
+        in UnOp op expr'
     helper (Fix term) = Fix $ helper term
     helper (Variant v) = Variant $ helper <$> v
     helper (CaseOf scrut branches) =
@@ -82,7 +81,7 @@ substDB j n = helper
         in CaseOf scrut' branches'
 
 betaRuleDB :: Term -> Term
-betaRuleDB ((Lmb _ _ t) :@: s) =
+betaRuleDB ((Lmb _ t) :@: s) =
     let s' = shift 1 s
         t' = substDB (I.ofInt 0) s' t
     in shift (-1) t'
@@ -103,17 +102,13 @@ termOfBool :: Bool -> Term
 termOfBool True = Tru
 termOfBool False = Fls
 
-runBinOp :: Term -> BinOp -> Term -> Term
-runBinOp left Eq right  = termOfBool (left == right)
-runBinOp left NEq right = termOfBool (left /= right)
-runBinOp (Int left) Add (Int right) = Int $ left + right
-runBinOp (Int left) Sub (Int right) = Int $ left - right
-runBinOp (Int left) Mul (Int right) = Int $ left * right
-runBinOp (Int left) Lt (Int right)  = termOfBool (left < right)
-runBinOp (Int left) Le (Int right)  = termOfBool (left <= right)
-runBinOp (Int left) Gt (Int right)  = termOfBool (left > right)
-runBinOp (Int left) Ge (Int right)  = termOfBool (left >= right)
-runBinOp _ _ _ = error "unexpected argument in binOp"
+runUnOp :: UnOp -> Term -> Term
+runUnOp Succ (Int n) = Int $ succ n
+runUnOp Pred (Int n)
+    | n > 0 = Int $ pred n
+    | otherwise = Int n
+runUnOp IsZero (Int n) = termOfBool $ n == 0
+runUnOp _ term = error $ "unOp applyed to "+||term||+""
 
 isBranch :: Term -> Pat.Pattern -> Bool
 isBranch (Record _) (Pat.Record _) = True
@@ -174,14 +169,11 @@ callByValueStep (CaseOf scrut branches) = do
 callByValueStep t@(Variant _) | isValue t = fail "Value variant"
 callByValueStep (Variant f) = Variant <$> mapM callByValueStep f
 -- BinOp
-callByValueStep (BinOp left op right)
-    | not $ isValue left = do
-        left' <- callByValueStep left
-        return $ BinOp left' op right
-    | isValue left && not (isValue right) = do
-        right' <- callByValueStep right
-        return $ BinOp left op right'
-    | otherwise = return $ runBinOp left op right
+callByValueStep (UnOp op expr)
+    | not $ isValue expr = do
+        expr' <- callByValueStep expr
+        return $ UnOp op expr'
+    | otherwise = return $ runUnOp op expr
 -- Fix
 callByValueStep point@(Fix term)
     | not $ isValue term = Fix <$> callByValueStep term

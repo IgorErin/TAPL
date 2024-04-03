@@ -1,1 +1,1 @@
-[TLetrec,TIdent "fac",TLParent,TIdent "x",TColumn,TIntType,TRParent,TColumn,TIntType,TEq,TIf,TLParent,TEqEq,TIdent "x",TInt 1,TRParent,TThen,TInt 1,TElse,TLParent,TMul,TIdent "x",TLParent,TIdent "fac",TLParent,TSub,TIdent "x",TInt 1,TRParent,TRParent,TRParent,TIn,TIdent "fac",TInt 4]
+[TLet,TIdent "x",TEq,TInt 4,TIn,TSucc,TIdent "x"]

@@ -1,1 +1,1 @@
-Let "x" (Record [("t",Tru),("u",Unit)]) (Lam (Just "x") (Record [("u",Unit),("t",Bool)]) (Var "x") :@ Var "x")
+Let "x" (Record [("lol",Int 3),("kek",Tru)]) (Get (Var "x") "lol")

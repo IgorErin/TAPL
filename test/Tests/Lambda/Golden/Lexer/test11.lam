@@ -1,1 +1,1 @@
-[TLambda,TLParent,TIdent "x",TColumn,TUnitType,TRParent,TArrow,TIdent "x"]
+[TMatch,TLSquare,TIdent "x",TEq,TInt 5,TRSquare,TAs,TLSquare,TIdent "x",TColumn,TIntType,TRSquare,TWith,TVerBar,TLSquare,TIdent "x",TEq,TIdent "r",TRSquare,TArrow,TIdent "r",TEnd]

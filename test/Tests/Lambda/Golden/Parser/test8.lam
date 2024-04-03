@@ -1,1 +1,1 @@
-Let "x" (Lam (Just "x") (Variant [("none",Unit),("some",Int)]) (Var "x") :@ Variant ("some",Int 3)) (Var "x")
+Let "x" (Lam (Just "x") (Variant (Fields [("none",Unit),("some",Int)])) (Var "x") :@ Variant ("some",Int 3)) (Var "x")

@@ -1,2 +1,2 @@
-let x = {t = true, u = ()} in
-(fun (x: {u: Unit, t: Bool}) -> x) x
+let x = { lol = 3, kek = true } in
+x.lol

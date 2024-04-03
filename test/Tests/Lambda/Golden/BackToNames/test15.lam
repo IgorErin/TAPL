@@ -1,1 +1,0 @@
-Right (Lam (Just "x") Unit (Var "x") :@ Unit)

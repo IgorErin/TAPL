@@ -1,1 +1,1 @@
-[TLet,TIdent "x",TEq,TLCurlyBrace,TIdent "t",TEq,TTrue,TComma,TIdent "u",TEq,TUnit,TRCurlyBrace,TIn,TLParent,TLambda,TLParent,TIdent "x",TColumn,TLCurlyBrace,TIdent "u",TColumn,TUnitType,TComma,TIdent "t",TColumn,TBoolType,TRCurlyBrace,TRParent,TArrow,TIdent "x",TRParent,TIdent "x"]
+[TLet,TIdent "x",TEq,TLCurlyBrace,TIdent "lol",TEq,TInt 3,TComma,TIdent "kek",TEq,TTrue,TRCurlyBrace,TIn,TIdent "x",TDot,TIdent "lol"]
