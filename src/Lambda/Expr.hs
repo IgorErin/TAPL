@@ -1,5 +1,13 @@
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+
 module Lambda.Expr  (
-    Expr(..), Binder,
+    Expr_(..),
+    Expr,
+    TypedExpr,
+    Binder,
+    toText,
     var, app, lam, lams,
     if_, false, true,
     unit,
@@ -10,10 +18,12 @@ module Lambda.Expr  (
     get,
     int,
     unOp,
-    caseOf
+    caseOf,
+    pattern (:>)
 ) where
 
 import Data.List.NonEmpty ( NonEmpty(..) )
+import Fmt
 
 import Lambda.Types (Type, arrow)
 import Lambda.Ident (Name, Label)
@@ -24,86 +34,131 @@ type Binder = Maybe Name
 
 infixl 4 :@
 
-type Field = (Label, Expr)
-type Record = [Field]
+newtype Fix f = Fix { unFix :: f (Fix f) }
 
-data Expr =
+newtype Compose f g x = Compose { getCompose :: f (g x) }
+
+type Tree f a = Fix (Compose ((,) a) f)
+
+pattern (:>) :: a -> f (Tree f a) -> Tree f a
+pattern a :> f = Fix (Compose (a, f))
+
+data Expr_ self =
     Var Name
     | Tru
     | Fls
     | Unit
     | Int Int
-    | UnOp UnOp Expr
-    | If Expr Expr Expr
-    | Expr :@ Expr
-    | Lam Binder Type Expr
-    | Let Name Expr Expr
-    | CaseOf Expr [(Pattern, Expr)]
+    | UnOp UnOp self
+    | If self self self
+    | self :@ self
+    | Lam Binder Type self
+    | Let Name self self
+    | CaseOf self [(Pattern, self)]
     | Record Record
     | Variant Field
-    | Get Expr Label
-    | Fix Expr
-    deriving (Eq, Show)
+    | Get self Label
+    | EFix self
+
+type Expr = Tree Expr_ ()
+
+toText :: Expr -> Builder
+toText (() :> Var name) = ""+|name|+""
+toText (() :> Tru) = "true"
+toText (() :> Fls) = "false"
+toText (() :> Unit) = "unit"
+toText (() :> Int n) = ""+|n|+""
+toText (() :> UnOp op e) = ""+||op||+" "+|toText e|+""
+toText (() :> If g t f) = "if "+| toText g|+"\nthen "+| toText t|+"\nelse "+| toText f|+""
+toText (() :> (left :@ right)) = ""+|toText left|+" "+| toText right |+""
+toText (() :> (Lam binder t e)) = "(fun ("+||binder||+"): "+||t||+" -> "+|toText e|+")"
+toText (() :> (Let name e b)) = "let "+|name|+" = "+|toText e|+" in\n"+| toText b|+""
+toText (() :> CaseOf s ls) = "case "+|toText s|+" of\n"+|caseText ls|+""
+    where
+    caseText :: [(Pattern, Expr)] -> Builder
+    caseText ((pat, e) : tl) = ""+||pat||+" -> "+| toText e|+"\n"+| caseText tl|+""
+    caseText [] = ""
+toText (() :> Record r) = "Record { "+||fields r||+"}"
+    where
+    fields :: [Field] -> Builder
+    fields ((l, e) : tl) = ""+||l|+" : "+| toText e|+", "+| fields tl|+""
+    fields [] = ""
+toText (() :> Variant (lb, e)) = "< "+||lb||+" : "+| toText e|+" >"
+toText (() :> (Get e lb)) = "("+| toText e|+")."+|lb|+""
+toText (() :> EFix e) = "fix "+| toText e |+""
+toText (Fix { unFix = Compose { getCompose = ((), e) }}) = toText $ mk e
+
+instance Show Expr where
+    show :: Expr -> String
+    show = fmt . toText
+
+type TypedExpr = Tree Expr_ Type
+
+type Field = (Label, Expr)
+type Record = [Field]
+
+mk :: Expr_ Expr -> Expr
+mk  = (:>) ()
 
 true :: Expr
-true = Tru
+true = mk Tru
 
 false :: Expr
-false = Fls
+false = mk Fls
 
 if_ :: Expr -> Expr -> Expr -> Expr
-if_ = If
+if_ g t f = mk $ If g t f
 
 var :: Name -> Expr
-var = Var
+var = mk . Var
 
 app :: Expr -> Expr -> Expr
-app = (:@)
+app l r = mk $ l :@ r
 
 lam :: Binder -> Type -> Expr -> Expr
-lam = Lam
+lam b t e = mk $ Lam b t e
 
 lams :: NonEmpty (Binder, Type) -> Expr -> Expr
 lams ((ident, ty) :| tl) expr = lam ident ty $ mkLam expr tl
 
 unit :: Expr
-unit = Unit
+unit = mk Unit
 
 ascription :: Expr -> Type -> Expr
-ascription e t = Lam (Just "x") t (Var "x") :@ e
+ascription e t = lam (Just "x") t (var "x") `app` e
 
 record :: Record -> Expr
-record = Record
+record = mk . Record
 
 variant :: Field -> Expr
-variant = Variant
+variant = mk . Variant
 
 get :: Expr -> Label -> Expr
-get = Get
+get e l = mk $ Get e l
 
 int :: Int -> Expr
-int = Int
+int = mk . Int
 
 caseOf :: Expr -> [(Pattern, Expr)] -> Expr
-caseOf = CaseOf
+caseOf e ls = mk $ CaseOf e ls
 
 unOp :: UnOp -> Expr -> Expr
-unOp = UnOp
+unOp op e = mk $ UnOp op e
 
 --------------------------- Let ----------------------------
 
 mkLam :: Expr -> [(Binder, Type)] -> Expr
-mkLam expr ((bin, ty) : tl) = Lam bin ty $ mkLam expr tl
+mkLam expr ((bin, ty) : tl) = lam bin ty $ mkLam expr tl
 mkLam expr [] = expr
 
 let_ :: Name -> [(Binder, Type)] -> Expr -> Expr -> Expr
-let_ name params expr = Let name (mkLam expr params)
+let_ name params expr body =
+    mk $
+    Let name (mkLam expr params) body
 
 letrec :: Name -> [(Binder, Type)] -> Type -> Expr -> Expr -> Expr
 letrec name params resultType expr body =
     let argTypes = snd <$> params
-        funType = foldr arrow resultType argTypes
-        fix = Fix (Lam (Just name) funType (mkLam expr params))
-    in Let name fix body
-
-
+        funType = Prelude.foldr arrow resultType argTypes
+        fix = mk $ EFix (lam (Just name) funType (mkLam expr params))
+    in mk $ Let name fix body

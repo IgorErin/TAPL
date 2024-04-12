@@ -1,1 +1,2 @@
-Let "x" (Record [("t",Tru),("f",Fls)]) (Var "x")
+let x = Record { "t : true, f : false, "} in
+x

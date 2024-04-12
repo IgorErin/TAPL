@@ -1,1 +1,5 @@
-Let "f" Fls (Let "t" Tru (If (Var "t") (Var "f") (Var "t")))
+let f = false in
+let t = true in
+if t
+then f
+else t

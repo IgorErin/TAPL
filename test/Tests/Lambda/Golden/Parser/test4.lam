@@ -1,1 +1,4 @@
-Let "x" (Record [("t",Tru),("y",Fls)]) (If (Get (Var "x") "t") (Get (Var "x") "y") (Get (Var "x") "t"))
+let x = Record { "t : true, y : false, "} in
+if (x).t
+then (x).y
+else (x).t

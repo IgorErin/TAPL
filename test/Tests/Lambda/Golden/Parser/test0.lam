@@ -1,1 +1,4 @@
-Let "x" Tru (Let "y" Fls (Let "u" Unit (Var "u")))
+let x = true in
+let y = false in
+let u = unit in
+u

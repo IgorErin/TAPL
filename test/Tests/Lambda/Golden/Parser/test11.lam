@@ -1,1 +1,2 @@
-CaseOf (Lam (Just "x") (Variant (Fields [("x",Int)])) (Var "x") :@ Variant ("x",Int 5)) [(Variant "x" (Var "r"),Var "r")]
+case (fun (Just "x"): Variant (Fields [("x",Int)]) -> x) < "x" : 5 > of
+Variant "x" (Var "r") -> r

@@ -1,1 +1,1 @@
-Lam (Just "x") (Bool :-> Bool) (Var "x") :@ Lam (Just "x") Bool (Var "x")
+(fun (Just "x"): Bool :-> Bool -> x) (fun (Just "x"): Bool -> x)

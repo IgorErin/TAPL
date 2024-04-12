@@ -29,7 +29,6 @@ library
   exposed-modules:
       Arith.Ast
       Arith.Eval
-      Lambda.Convert.ToExpr
       Lambda.Convert.ToTerm
       Lambda.EInfer
       Lambda.Eval
@@ -50,7 +49,7 @@ library
       Paths_TAPL
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -XNoFieldSelectors -XNamedFieldPuns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XPatternSynonyms -XOverloadedStrings -XNoFieldSelectors -XNamedFieldPuns
   build-tools:
       alex
     , happy

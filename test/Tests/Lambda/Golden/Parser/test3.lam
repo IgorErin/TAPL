@@ -1,1 +1,2 @@
-Let "x" (Record [("lol",Int 3),("kek",Tru)]) (Get (Var "x") "lol")
+let x = Record { "lol : 3, kek : true, "} in
+(x).lol

@@ -1,1 +1,2 @@
-Let "x" (Int 4) (UnOp Succ (Var "x"))
+let x = 4 in
+Succ x

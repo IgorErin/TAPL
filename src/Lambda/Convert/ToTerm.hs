@@ -1,10 +1,10 @@
 module Lambda.Convert.ToTerm (run, Result) where
 
 import Lambda.Term (Term((:@:)))
-import Lambda.Expr (Expr((:@)))
+import Lambda.Expr (Expr_(..), Expr, pattern (:>))
 
 import qualified Lambda.Term  as T (Term(..))
-import qualified Lambda.Expr  as E (Expr(..))
+import qualified Lambda.Expr  as E (lam, get, let_, var, app, Expr)
 import qualified Lambda.Ident as Id (Label, Name)
 import qualified Lambda.Index as Ind
 import qualified Lambda.Info  as Inf (Info)
@@ -36,47 +36,47 @@ run e = runReaderT (helper e) Ind.emptyCtx
 
     caseOfBranch :: Ty.Type -> Pat.Pattern -> Expr -> Expr
     caseOfBranch typ pat body =
-        E.Lam (Just scurtini) typ $ foldr step body access
+        E.lam (Just scurtini) typ $ foldr step body access
         where
         scurtini = "_scrutiny"
 
         transGet :: Pat.Path -> Expr -> Expr
         transGet p exr = foldr lam exr p
-            where lam (Pat.Get f) acc = E.Get acc f
+            where lam (Pat.Get f) acc = E.get acc f
 
-        step :: (Id.Name, Pat.Path) -> Expr -> Expr
-        step (name, path) = E.Let name (transGet path (E.Var scurtini))
+        step :: (Id.Name, Pat.Path) -> E.Expr -> E.Expr
+        step (name, path) = E.let_ name [] (transGet path (E.var scurtini))
 
         access = Pat.fetchAccess pat
 
     helper :: E.Expr -> HelperContext T.Term
-    helper (E.Var name) = T.Idx <$> nameToIndex name
-    helper (left :@ right) = do
+    helper (() :> Var name) = T.Idx <$> nameToIndex name
+    helper (() :> (left :@ right)) = do
         left' <- helper left
         right' <- helper right
 
         return $ left' :@: right'
-    helper (E.Lam name _ body) = do
+    helper (() :> Lam name _ body) = do
         body' <- local (Ind.addData name) $ helper body
 
         return $ T.Lmb name body'
-    helper (E.If guard etrue efalse) = do
+    helper (() :> If guard etrue efalse) = do
         guard' <- helper guard
         etrue' <- helper etrue
         efalse' <- helper efalse
 
         return $ T.If guard' etrue' efalse'
-    helper E.Tru = return T.Tru
-    helper E.Fls = return T.Fls
-    helper E.Unit = return T.Unit
-    helper (E.Let name expr body) = do
+    helper (() :> Tru) = return T.Tru
+    helper (() :> Fls) = return T.Fls
+    helper (() :> Unit) = return T.Unit
+    helper (() :> Let name expr body) = do
         expr' <- helper expr
         ty <- lift $ I.run expr'
 
-        let lam = E.Lam (Just name) ty body
+        let lam = E.lam (Just name) ty body
 
-        helper $ lam :@ expr
-    helper (E.CaseOf escrut branchs) = do
+        helper $ lam `E.app` expr
+    helper (() :> CaseOf escrut branchs) = do
         scrut <- helper escrut
         scrutTy <- lift $ I.run scrut
 
@@ -89,19 +89,22 @@ run e = runReaderT (helper e) Ind.emptyCtx
         let branchs' = zip pats lambs
 
         return $ T.CaseOf scrut branchs'
-    helper (E.Record ls) = do
+    helper (() :> Record ls) = do
         -- TODO check record fields
         ls' <- mapM runRecordField ls
 
         return $ T.Record ls'
-    helper (E.Get expr lb) = do
+    helper (() :> Get expr lb) = do
         term <- helper expr
 
         return $ T.Get term lb
-    helper (E.Int n) = return $ T.Int n
-    helper (E.UnOp op expr) = do
+    helper (() :> Int n) = return $ T.Int n
+    helper (() :> UnOp op expr) = do
         expr' <- helper expr
 
         return $ T.UnOp op expr'
-    helper (E.Fix expr) = T.Fix <$> helper expr
-    helper (E.Variant v) = T.Variant <$> mapM helper v
+    helper (() :> EFix expr) = T.Fix <$> helper expr
+    helper (() :> Variant v) = T.Variant <$> mapM helper v
+    helper _ = error "TODO Pattern for fix"
+
+

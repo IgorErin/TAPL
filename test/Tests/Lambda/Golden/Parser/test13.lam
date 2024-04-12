@@ -1,1 +1,1 @@
-Lam Nothing Unit Tru
+(fun (Nothing): Unit -> true)

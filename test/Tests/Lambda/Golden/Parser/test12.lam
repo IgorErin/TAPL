@@ -1,1 +1,2 @@
-Lam (Just "lol") Int (Let "l" (Var "lol") (Int 0))
+(fun (Just "lol"): Int -> let l = lol in
+0)

@@ -1,6 +1,6 @@
 module Lambda.EInfer (run, Result) where
 
-import Lambda.Expr as Le (Expr(..))
+import Lambda.Expr as Le (Expr_(..), Expr, toText, TypedExpr, pattern (:>))
 
 import Lambda.Info as Inf (Info)
 import Lambda.Types (Type)
@@ -60,24 +60,24 @@ nameLookup ctx name = case Map.lookup name ctx of
         Nothing -> throwError $ "Unbound name: "+||name||+""
 
 infer :: Expr -> Infer Type
-infer (Var v) = do
+infer (() :> Var v) = do
     ctx <- ask
 
     nameLookup ctx v
-infer Tru = return Ty.Bool
-infer Fls = return Ty.Bool
-infer Unit = return Ty.Unit
-infer (Int _) = return Ty.Int
-infer (UnOp op expr) = do
+infer (() :> Tru) = return Ty.Bool
+infer (() :> Fls) = return Ty.Bool
+infer (() :> Unit) = return Ty.Unit
+infer (() :> Int _) = return Ty.Int
+infer (() :> UnOp op expr) = do
     let opT = typeOfUnOp op
     exprT <- infer expr
 
     app opT exprT
-infer (If grd true false) = do
+infer (() :> If grd true false) = do
     _ <- bool <$> infer grd
 
     branch =<< mapM infer [true, false]
-infer (lmb :@ Variant (lb, expr)) = do
+infer (() :> (lmb :@ () :> Variant (lb, expr))) = do
     lmbT <- infer lmb
     (base, result) <- arrow lmbT
     exprT <- infer expr
@@ -91,23 +91,23 @@ infer (lmb :@ Variant (lb, expr)) = do
         t -> throwError $ "expected Variant, but: "+||t||+""
 
     return result
-infer v@(Variant _) = do
-    throwError $ "Variant typing failed. More information needed: "+||v||+""
-infer (left :@ right) = do
+infer v@(() :> Variant _) = do
+    throwError $ "Variant typing failed. More information needed: "+||toText v||+""
+infer (() :> (left :@ right)) = do
     left' <- infer left
     right' <- infer right
 
     app left' right'
-infer (Lam binder typ body) = do
+infer (() :> Lam binder typ body) = do
     bodyT <- case binder of
         Just name -> do ctxLocal name typ $ infer body
         Nothing -> infer body
 
     return $ typ Ty.:-> bodyT
-infer (Let name expr body) = do
+infer (() :> Let name expr body) = do
     nameT <- infer expr
     ctxLocal name nameT $ infer body
-infer (CaseOf scr branchs) = do
+infer (() :> CaseOf scr branchs) = do
     scrT <- infer scr
 
     let pats = fst <$> branchs
@@ -119,11 +119,11 @@ infer (CaseOf scr branchs) = do
         branchs
 
     branch btypes
-infer (Record ls) = do
+infer (() :> Record ls) = do
     x <- Ty.fields <$> mapM (mapM infer) ls
 
     return $ Ty.Record x
-infer (Get expr tag) = do
+infer (() :> Get expr tag) = do
     exprT <- infer expr
 
     let findFiled :: Ty.Record -> Infer Type
@@ -136,13 +136,15 @@ infer (Get expr tag) = do
         Ty.Record ls -> findFiled ls
         Ty.Variant ls -> findFiled ls
         t -> throwError $ "Getter of "+||t||+""
-infer (Fix expr) = do
+infer (() :> EFix expr) = do
     exprT <- infer expr
     (baseT, resultT) <- arrow exprT
 
     if baseT == resultT
     then return baseT
-    else throwError $ "Types in fix abs must be equal: "+||baseT||+" <> "+||resultT||+""
+    else throwError $
+        "Types in fix abs must be equal: "+||baseT||+" <> "+||resultT||+""
+infer _ = undefined
 
 run :: Le.Expr ->  Result
 run e = runReaderT (infer e) Map.empty

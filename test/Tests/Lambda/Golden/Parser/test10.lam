@@ -1,1 +1,2 @@
-CaseOf (Lam (Just "x") (Variant (Fields [("none",Unit)])) (Var "x") :@ Variant ("none",Unit)) [(Variant "none" Wild,Int 5)]
+case (fun (Just "x"): Variant (Fields [("none",Unit)]) -> x) < "none" : unit > of
+Variant "none" Wild -> 5
