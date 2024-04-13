@@ -1,1 +1,0 @@
-Right (If (BinOp (BinOp (Int 0) Add (Int 1)) Lt (BinOp (Int 1) Add (Int 1))) (Int 3) (Int 4))

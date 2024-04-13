@@ -1,5 +1,0 @@
-Lmb (Just "x") (Record [("t",Bool),("y",Bool)]) (If (Get (Idx x) "t") (Get (Idx x) "y") (Get (Idx x) "t")) :@: Record [("t",Tru),("y",Fls)]
-If (Get (Record [("t",Tru),("y",Fls)]) "t") (Get (Record [("t",Tru),("y",Fls)]) "y") (Get (Record [("t",Tru),("y",Fls)]) "t")
-If Tru (Get (Record [("t",Tru),("y",Fls)]) "y") (Get (Record [("t",Tru),("y",Fls)]) "t")
-Get (Record [("t",Tru),("y",Fls)]) "y"
-Fls

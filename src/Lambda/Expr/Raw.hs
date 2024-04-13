@@ -1,12 +1,11 @@
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 
-module Lambda.Expr  (
-    Expr_(..),
+module Lambda.Expr.Raw (
     Expr,
-    TypedExpr,
-    Binder,
+    Field,
+    Record,
+    ShowRaw(..),
     toText,
     var, app, lam, lams,
     if_, false, true,
@@ -19,8 +18,17 @@ module Lambda.Expr  (
     int,
     unOp,
     caseOf,
-    pattern (:>)
-) where
+    ) where
+
+import Lambda.Expr.Tree
+    ( Expr_(..),
+      Tree,
+      Compose(Compose, getCompose),
+      Fix(Fix, unFix),
+      Binder,
+      pattern (:>))
+
+import qualified Lambda.Expr.Tree as E ( Record, Field )
 
 import Data.List.NonEmpty ( NonEmpty(..) )
 import Fmt
@@ -30,37 +38,10 @@ import Lambda.Ident (Name, Label)
 import Lambda.Oper (UnOp)
 import Lambda.Pattern (Pattern)
 
-type Binder = Maybe Name
-
-infixl 4 :@
-
-newtype Fix f = Fix { unFix :: f (Fix f) }
-
-newtype Compose f g x = Compose { getCompose :: f (g x) }
-
-type Tree f a = Fix (Compose ((,) a) f)
-
-pattern (:>) :: a -> f (Tree f a) -> Tree f a
-pattern a :> f = Fix (Compose (a, f))
-
-data Expr_ self =
-    Var Name
-    | Tru
-    | Fls
-    | Unit
-    | Int Int
-    | UnOp UnOp self
-    | If self self self
-    | self :@ self
-    | Lam Binder Type self
-    | Let Name self self
-    | CaseOf self [(Pattern, self)]
-    | Record Record
-    | Variant Field
-    | Get self Label
-    | EFix self
-
 type Expr = Tree Expr_ ()
+
+type Record = E.Record Expr
+type Field = E.Field Expr
 
 toText :: Expr -> Builder
 toText (() :> Var name) = ""+|name|+""
@@ -81,21 +62,17 @@ toText (() :> CaseOf s ls) = "case "+|toText s|+" of\n"+|caseText ls|+""
 toText (() :> Record r) = "Record { "+||fields r||+"}"
     where
     fields :: [Field] -> Builder
-    fields ((l, e) : tl) = ""+||l|+" : "+| toText e|+", "+| fields tl|+""
+    fields ((l, e) : tl) = ""+||l|+" : "+|toText e|+", "+| fields tl|+""
     fields [] = ""
-toText (() :> Variant (lb, e)) = "< "+||lb||+" : "+| toText e|+" >"
+toText (() :> Variant (lb, e)) = "< "+||lb||+" : "+|toText e|+" >"
 toText (() :> (Get e lb)) = "("+| toText e|+")."+|lb|+""
 toText (() :> EFix e) = "fix "+| toText e |+""
-toText (Fix { unFix = Compose { getCompose = ((), e) }}) = toText $ mk e
 
-instance Show Expr where
-    show :: Expr -> String
-    show = fmt . toText
+newtype ShowRaw = ShowRaw Expr
 
-type TypedExpr = Tree Expr_ Type
-
-type Field = (Label, Expr)
-type Record = [Field]
+instance Show ShowRaw where
+    show :: ShowRaw -> String
+    show (ShowRaw e)= fmt $ toText e
 
 mk :: Expr_ Expr -> Expr
 mk  = (:>) ()

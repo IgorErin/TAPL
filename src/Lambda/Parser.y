@@ -2,7 +2,8 @@
 module Lambda.Parser where
 
 import qualified Lambda.Lexer as L
-import qualified Lambda.Expr as LE
+import qualified Lambda.Expr.Raw as LE
+import qualified Lambda.Expr.Tree as LE (Binder)
 import qualified Lambda.Types as TT
 import qualified Lambda.Ident as LI
 import qualified Lambda.Oper as Op
@@ -134,7 +135,7 @@ Pattern
 
 --------------------------- Variant ---------------------------
 
-VariantExpr :: { (LI.Label, LE.Expr) }
+VariantExpr :: { LE.Field }
 VariantExpr : '[' Label '=' Expr ']'                    { ($2, $4) }
 
 VariantType :: { [(LI.Label, TT.Type)] }

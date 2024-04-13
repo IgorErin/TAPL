@@ -1,2 +1,0 @@
-Lmb (Just "x") (Record [("t",Bool),("f",Bool)]) (Idx x) :@: Record [("t",Tru),("f",Fls)]
-Record [("t",Tru),("f",Fls)]

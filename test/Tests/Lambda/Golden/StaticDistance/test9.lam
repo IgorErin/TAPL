@@ -1,1 +1,0 @@
-Right (Lmb (Just "fac") (Int :-> Int) (Idx fac :@: Int 4) :@: Fix (Lmb (Just "fac") (Int :-> Int) (Lmb (Just "x") Int (If (BinOp (Idx x) Eq (Int 1)) (Int 1) (BinOp (Idx x) Mul (Idx fac :@: BinOp (Idx x) Sub (Int 1)))))))

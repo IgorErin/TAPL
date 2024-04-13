@@ -1,1 +1,0 @@
-Right (Lmb (Just "x") Bool (Lmb (Just "y") Bool (Lmb (Just "u") Unit (Idx u) :@: Unit) :@: Fls) :@: Tru)

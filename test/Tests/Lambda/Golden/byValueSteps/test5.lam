@@ -1,5 +1,0 @@
-If (BinOp (BinOp (Int 0) Add (Int 1)) Lt (BinOp (Int 1) Add (Int 1))) (Int 3) (Int 4)
-If (BinOp (Int 1) Lt (BinOp (Int 1) Add (Int 1))) (Int 3) (Int 4)
-If (BinOp (Int 1) Lt (Int 2)) (Int 3) (Int 4)
-If Tru (Int 3) (Int 4)
-Int 3

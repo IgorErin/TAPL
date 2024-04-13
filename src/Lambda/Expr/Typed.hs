@@ -1,6 +1,9 @@
-module Lambda.EInfer (run, Result) where
+{-# LANGUAGE InstanceSigs #-}
 
-import Lambda.Expr as Le (Expr_(..), Expr, toText, TypedExpr, pattern (:>))
+module Lambda.Expr.Typed (run, Result, ShowTyped(..)) where
+
+import Lambda.Expr.Tree (Expr_(..), Tree, pattern (:>))
+import Lambda.Expr.Raw (Expr, toText)
 
 import Lambda.Info as Inf (Info)
 import Lambda.Types (Type)
@@ -22,7 +25,7 @@ import Control.Monad.Reader (ReaderT (runReaderT), lift, ask, local)
 type Ctx = Map.Map Name Type
 type Infer a = ReaderT Ctx (Either Info) a
 
-type Result = Either Info Type
+type Result = Either Info TypedExpr
 
 ctxLocal :: Name -> Type -> Infer a -> Infer a
 ctxLocal name ty = local $ Map.insert name ty
@@ -31,6 +34,10 @@ typeOfUnOp :: UnOp -> Type
 typeOfUnOp Succ = Ty.Int `Ty.arrow` Ty.Int
 typeOfUnOp Pred = Ty.Int `Ty.arrow` Ty.Int
 typeOfUnOp IsZero = Ty.Int `Ty.arrow` Ty.Bool
+
+type TypedExpr = Tree Expr_ Type
+
+--------------------- Checks -------------------------
 
 app :: Type -> Type -> Infer Type
 app f s = do
@@ -59,72 +66,113 @@ nameLookup ctx name = case Map.lookup name ctx of
         Just x -> return x
         Nothing -> throwError $ "Unbound name: "+||name||+""
 
-infer :: Expr -> Infer Type
+---------------- Smart constructors ----------------
+
+infer :: Expr -> Infer TypedExpr
 infer (() :> Var v) = do
     ctx <- ask
+    t <- nameLookup ctx v
 
-    nameLookup ctx v
-infer (() :> Tru) = return Ty.Bool
-infer (() :> Fls) = return Ty.Bool
-infer (() :> Unit) = return Ty.Unit
-infer (() :> Int _) = return Ty.Int
+    return $ t :> Var v
+infer (() :> Tru) = return $ Ty.Bool :> Tru
+infer (() :> Fls) = return $ Ty.Bool :> Fls
+infer (() :> Unit) = return $ Ty.Unit :> Unit
+infer (() :> Int n) = return $ Ty.Int :> Int n
 infer (() :> UnOp op expr) = do
     let opT = typeOfUnOp op
-    exprT <- infer expr
 
-    app opT exprT
+    expr' <- infer expr
+    let (exprT :> _) = expr'
+
+    t' <- app opT exprT
+
+    return (t' :> UnOp op expr')
 infer (() :> If grd true false) = do
-    _ <- bool <$> infer grd
+    grd' <- infer grd
+    let (grdT :> _) = grd'
 
-    branch =<< mapM infer [true, false]
+    _ <- bool grdT
+
+    true' <- infer true
+    let (trueT :> _) = true'
+
+    false' <- infer false
+    let (falseT :> _) = false'
+
+    resultT <- branch [trueT, falseT]
+
+    let resultExpr = If grd' true' false'
+    return $ resultT :> resultExpr
 infer (() :> (lmb :@ () :> Variant (lb, expr))) = do
-    lmbT <- infer lmb
-    (base, result) <- arrow lmbT
-    exprT <- infer expr
+    lmb' <- infer lmb
+    let (lmbT :> _) = lmb'
 
-    let filedT = (lb, exprT)
+    (base, result) <- arrow lmbT
+
+    expr' <- infer expr
+    let (exprT :> _) = expr'
 
     case base of
         Ty.Variant tfl
-            | Ty.fmember filedT tfl -> return ()
+            | Ty.fmember (lb, exprT) tfl -> return ()
             | otherwise -> throwError $ "no "+||(lb, exprT)||+"filed in "+||lmbT||+""
         t -> throwError $ "expected Variant, but: "+||t||+""
 
-    return result
+    return $ result :> (lmb' :@ expr')
 infer v@(() :> Variant _) = do
     throwError $ "Variant typing failed. More information needed: "+||toText v||+""
 infer (() :> (left :@ right)) = do
     left' <- infer left
-    right' <- infer right
+    let (leftT :> _) = left'
 
-    app left' right'
+    right' <- infer right
+    let (rightT :> _) = right'
+
+    resultT <- app leftT rightT
+
+    return $ resultT :> (left' :@ right')
 infer (() :> Lam binder typ body) = do
-    bodyT <- case binder of
+    body' <- case binder of
         Just name -> do ctxLocal name typ $ infer body
         Nothing -> infer body
 
-    return $ typ Ty.:-> bodyT
+    let (bodyT :> _) = body'
+    let t = typ Ty.:-> bodyT
+
+    return $ t :> Lam binder typ body'
 infer (() :> Let name expr body) = do
-    nameT <- infer expr
-    ctxLocal name nameT $ infer body
+    expr' <- infer expr
+    let (nameT :> _) = expr'
+
+    body' <- ctxLocal name nameT $ infer body
+    let (bodyT :> _) = body'
+
+    return $ bodyT :> Let name expr' body'
 infer (() :> CaseOf scr branchs) = do
-    scrT <- infer scr
+    scr' <- infer scr
+    let (scrT :> _) = scr'
 
     let pats = fst <$> branchs
     _ <- lift $ Pat.check scrT pats
 
-    btypes <- mapM (\(pat, expr) -> do
+    branchs' <- mapM (\(pat, expr) -> do
         patVarTypes <- lift $ Pat.getVarTypes scrT pat
-        local (Map.union patVarTypes) $ infer expr)
+        expr' <- local (Map.union patVarTypes) $ infer expr
+
+        return (pat, expr'))
         branchs
 
-    branch btypes
-infer (() :> Record ls) = do
-    x <- Ty.fields <$> mapM (mapM infer) ls
+    resultT <- branch $ (\(_, t :> _) -> t) <$> branchs' -- TODO
 
-    return $ Ty.Record x
+    return $ resultT :> CaseOf scr' branchs'
+infer (() :> Record ls) = do
+    record <- mapM (mapM infer) ls
+    let recordT = Ty.fields $ (\(lb, t :> _) -> (lb, t)) <$> record
+
+    return $ Ty.Record recordT :> Record record
 infer (() :> Get expr tag) = do
-    exprT <- infer expr
+    expr' <- infer expr
+    let (exprT :> _) = expr'
 
     let findFiled :: Ty.Record -> Infer Type
         findFiled ls = maybe
@@ -132,19 +180,33 @@ infer (() :> Get expr tag) = do
             return
             (Ty.fget tag ls)
 
-    case exprT of
+    resultT <- case exprT of
         Ty.Record ls -> findFiled ls
         Ty.Variant ls -> findFiled ls
         t -> throwError $ "Getter of "+||t||+""
+
+    return $ resultT :> Get expr' tag
 infer (() :> EFix expr) = do
-    exprT <- infer expr
+    expr' <- infer expr
+    let (exprT :> _) = expr'
+
     (baseT, resultT) <- arrow exprT
 
-    if baseT == resultT
-    then return baseT
-    else throwError $
-        "Types in fix abs must be equal: "+||baseT||+" <> "+||resultT||+""
-infer _ = undefined
+    ty <- if baseT == resultT
+          then return baseT
+          else throwError $
+                "Types in fix abs must be equal: "+||baseT||+" <> "+||resultT||+""
 
-run :: Le.Expr ->  Result
+    return $ ty :> EFix expr'
+
+run :: Expr ->  Result
 run e = runReaderT (infer e) Map.empty
+
+
+----------------------- show ------------------------
+
+newtype ShowTyped = ShowTyped TypedExpr
+
+instance Show ShowTyped where
+    show :: ShowTyped -> String
+    show (ShowTyped (t :> _)) = show t

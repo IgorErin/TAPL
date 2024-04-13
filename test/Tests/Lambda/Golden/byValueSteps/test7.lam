@@ -1,3 +1,0 @@
-Lmb (Just "x") (Variant [("none",Unit)]) (Int 2) :@: (Lmb (Just "x") (Variant [("none",Unit)]) (Idx x) :@: Variant ("none",Unit))
-Lmb (Just "x") (Variant [("none",Unit)]) (Int 2) :@: Variant ("none",Unit)
-Int 2
