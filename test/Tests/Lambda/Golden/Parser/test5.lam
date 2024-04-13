@@ -1,3 +1,4 @@
-if true
-then 3
-else 4
+let x = (fun (Just "x"): Variant (Fields [("x",Int),("y",Unit)]) -> x) < "x" : 23 > in
+case x of
+Variant "y" (Var "y") -> y
+Wild -> 0

@@ -1,7 +1,7 @@
 module Tests.Lambda.All(tests) where
 
 import Test.Tasty (TestTree, testGroup)
-import Tests.Lambda.Common as TestLambda (runShow, runString)
+import Tests.Lambda.Common as TestLambda (runShow)
 
 import qualified Lambda.Expr.Raw    as LE (Expr, ShowRaw(..))
 import qualified Lambda.Expr.Typed  as ET (run, Result, ShowTyped(..))

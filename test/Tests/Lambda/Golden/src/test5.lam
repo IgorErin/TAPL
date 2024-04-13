@@ -1,1 +1,5 @@
-if true then 3 else 4
+let x = [x = 23] as [ x: Int, y : Unit] in
+match x with
+| [y = y] -> y
+| _ -> 0
+end

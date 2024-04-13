@@ -202,7 +202,6 @@ infer (() :> EFix expr) = do
 run :: Expr ->  Result
 run e = runReaderT (infer e) Map.empty
 
-
 ----------------------- show ------------------------
 
 newtype ShowTyped = ShowTyped TypedExpr

@@ -23,15 +23,13 @@ module Lambda.Expr.Raw (
 import Lambda.Expr.Tree
     ( Expr_(..),
       Tree,
-      Compose(Compose, getCompose),
-      Fix(Fix, unFix),
       Binder,
       pattern (:>))
 
 import qualified Lambda.Expr.Tree as E ( Record, Field )
 
 import Data.List.NonEmpty ( NonEmpty(..) )
-import Fmt
+import Fmt ( Builder, (+|), (+||), fmt, (|+), (||+) )
 
 import Lambda.Types (Type, arrow)
 import Lambda.Ident (Name, Label)

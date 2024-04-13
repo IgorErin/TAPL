@@ -1,1 +1,1 @@
-[TIf,TTrue,TThen,TInt 3,TElse,TInt 4]
+[TLet,TIdent "x",TEq,TLSquare,TIdent "x",TEq,TInt 23,TRSquare,TAs,TLSquare,TIdent "x",TColumn,TIntType,TComma,TIdent "y",TColumn,TUnitType,TRSquare,TIn,TMatch,TIdent "x",TWith,TVerBar,TLSquare,TIdent "y",TEq,TIdent "y",TRSquare,TArrow,TIdent "y",TVerBar,TWildCard,TArrow,TInt 0,TEnd]

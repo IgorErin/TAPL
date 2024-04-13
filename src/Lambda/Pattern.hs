@@ -86,9 +86,9 @@ checkOverlapping (hd : tl) = case unreachable of
     cover (Record ls) (Record ls') = all
         (\(lb, pat) -> case find ((== lb) . fst) ls of
                 Just (_, pat') -> cover pat pat'
-                Nothing -> undefined) ls'
+                Nothing -> False) ls'
     cover _ _ = False
-checkOverlapping [] = undefined
+checkOverlapping [] = return ()
 
 checkRecordDup :: Pattern -> Either Info ()
 checkRecordDup (Record ls) = case findDup lbs of

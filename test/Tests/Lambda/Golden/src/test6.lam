@@ -1,1 +1,9 @@
-let x = [none = 4] as [none : Int] in x
+let ifThenElse (x: [t: Unit, f: Unit]) =
+    match x with
+    | _ -> 0
+    | [t = _] -> 1
+    end
+in
+let t = [t = ()] as [t: Unit, f: Unit] in
+let f = [f = ()] as [t: Unit, f: Unit] in
+(ifThenElse t)

@@ -206,7 +206,7 @@ opt(p)          : p                   { Just $1 }
 list(p) : rev_list(p)                 { reverse $1 }
 
 rev_list(p)
-    : list(p) p                       { $2 : $1 }
+    : rev_list(p) p                       { $2 : $1 }
     | {- empty -}                     { [] }
 
 non_empty_list(p) : p list(p)         { $1 :| $2 }

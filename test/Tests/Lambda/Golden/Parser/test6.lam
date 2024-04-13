@@ -1,2 +1,7 @@
-let x = (fun (Just "x"): Variant (Fields [("none",Int)]) -> x) < "none" : 4 > in
-x
+let ifThenElse = (fun (Just "x"): Variant (Fields [("t",Unit),("f",Unit)]) -> case x of
+Wild -> 0
+Variant "t" Wild -> 1
+) in
+let t = (fun (Just "x"): Variant (Fields [("t",Unit),("f",Unit)]) -> x) < "t" : unit > in
+let f = (fun (Just "x"): Variant (Fields [("t",Unit),("f",Unit)]) -> x) < "f" : unit > in
+ifThenElse t
